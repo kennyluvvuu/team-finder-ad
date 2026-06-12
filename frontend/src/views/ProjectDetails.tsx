@@ -181,6 +181,7 @@ export function ProjectDetails() {
       // Invalidate query to refetch updated skills list
       queryClient.invalidateQueries({ queryKey: ["project", projectId] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["usedSkills"] });
     } catch (err) {
       console.error("Не удалось удалить навык:", err);
     }
@@ -189,6 +190,7 @@ export function ProjectDetails() {
   const handleSkillAdded = () => {
     queryClient.invalidateQueries({ queryKey: ["project", projectId] });
     queryClient.invalidateQueries({ queryKey: ["projects"] });
+    queryClient.invalidateQueries({ queryKey: ["usedSkills"] });
   };
 
   return (

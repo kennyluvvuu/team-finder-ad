@@ -39,13 +39,12 @@ const createProjectSchema = z.object({
 
 type CreateProjectForm = z.infer<typeof createProjectSchema>;
 
-const POPULAR_SKILLS = ["Python", "JavaScript", "React", "Django", "TypeScript", "PostgreSQL", "CSS", "HTML"];
-
 export function ProjectList() {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
   const [activeSkills, setActiveSkills] = useState<string[]>([]);
+  const [showAllSkills, setShowAllSkills] = useState(false);
   const [skillQuery, setSkillQuery] = useState("");
   const [skillSuggestions, setSkillSuggestions] = useState<Skill[]>([]);
   const [isSkillLoading, setIsSkillLoading] = useState(false);
@@ -114,11 +113,18 @@ export function ProjectList() {
     placeholderData: (previousData) => previousData, // keep old data while fetching new page
   });
 
+  // Fetch all used skills
+  const { data: usedSkills = [] } = useQuery({
+    queryKey: ["usedSkills"],
+    queryFn: () => api.getUsedSkills(),
+  });
+
   // Create Project mutation
   const createMutation = useMutation({
     mutationFn: api.createProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["usedSkills"] });
       setIsCreateOpen(false);
       setFormData({ name: "", description: "", github_url: "" });
       setFormErrors({});
@@ -309,24 +315,42 @@ export function ProjectList() {
                 </div>
               )}
 
-              {/* Quick Popular Skills */}
-              <div className="space-y-2 pt-2 border-t border-border/40">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Популярные навыки
+              {/* Used Skills List */}
+              <div className="space-y-3 pt-3 border-t border-border/40">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                  Навыки в проектах ({usedSkills.length})
                 </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {POPULAR_SKILLS.map((skill) => {
-                    const isActive = activeSkills.some((s) => s.toLowerCase() === skill.toLowerCase());
-                    return (
-                      <SkillBadge
-                        key={skill}
-                        name={skill}
-                        onClick={() => (isActive ? handleRemoveSkillFilter(skill) : handleAddSkillFilter(skill))}
-                        active={isActive}
-                      />
-                    );
-                  })}
-                </div>
+                {usedSkills.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">
+                    Навыки в проектах еще не указаны
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {(showAllSkills ? usedSkills : usedSkills.slice(0, 15)).map((skill) => {
+                        const isActive = activeSkills.some((s) => s.toLowerCase() === skill.name.toLowerCase());
+                        return (
+                          <SkillBadge
+                            key={skill.id}
+                            name={skill.name}
+                            onClick={() => (isActive ? handleRemoveSkillFilter(skill.name) : handleAddSkillFilter(skill.name))}
+                            active={isActive}
+                          />
+                        );
+                      })}
+                    </div>
+                    {usedSkills.length > 15 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAllSkills(!showAllSkills)}
+                        className="h-7 text-xs font-semibold px-2 hover:bg-accent/50 text-primary w-full justify-center"
+                      >
+                        {showAllSkills ? "Свернуть" : `Еще (${usedSkills.length - 15})`}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
