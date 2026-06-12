@@ -50,3 +50,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     def __str__(self):
         return f"{self.name} {self.surname} ({self.email})"
+
+    def save(self, *args, **kwargs):
+        if not self.avatar:
+            # Fallback to name or email prefix if name is empty
+            letter_source = self.name or self.email or "U"
+            self.avatar = generate_avatar(letter_source)
+        super().save(*args, **kwargs)
+
