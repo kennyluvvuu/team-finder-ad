@@ -149,3 +149,6 @@ dmypy.json
 
 # AI docs
 AGENTS.md
+
+# Media storage
+media/
