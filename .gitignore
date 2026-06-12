@@ -146,3 +146,6 @@ dmypy.json
 .ruff_cache/
 
 *.Identifier
+
+# AI docs
+AGENTS.md
