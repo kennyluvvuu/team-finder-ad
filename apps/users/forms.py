@@ -38,3 +38,40 @@ class LoginForm(forms.Form):
         label="Пароль",
         widget=forms.PasswordInput(attrs={"placeholder": "Пароль"})
     )
+
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("name", "surname", "about", "phone", "github_url", "avatar")
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": "Имя"}),
+            "surname": forms.TextInput(attrs={"placeholder": "Фамилия"}),
+            "about": forms.Textarea(attrs={"placeholder": "О себе", "rows": 4}),
+            "phone": forms.TextInput(attrs={"placeholder": "+7 (999) 999-99-99"}),
+            "github_url": forms.URLInput(attrs={"placeholder": "https://github.com/..."}),
+            "avatar": forms.FileInput(attrs={"id": "id_avatar", "style": "display: none;"}),
+        }
+
+class ChangePasswordForm(forms.Form):
+    old_password = forms.CharField(widget=forms.PasswordInput())
+    new_password1 = forms.CharField(widget=forms.PasswordInput())
+    new_password2 = forms.CharField(widget=forms.PasswordInput())
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_old_password(self):
+        old_password = self.cleaned_data.get("old_password")
+        if not self.user.check_password(old_password):
+            raise forms.ValidationError("Неверный текущий пароль.")
+        return old_password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            raise forms.ValidationError("Новые пароли не совпадают.")
+        return cleaned_data
+
