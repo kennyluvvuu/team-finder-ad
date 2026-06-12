@@ -1,0 +1,65 @@
+[
+  {
+    "model": "projects.skill",
+    "pk": 1,
+    "fields": {
+      "name": "Python"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 2,
+    "fields": {
+      "name": "Django"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 3,
+    "fields": {
+      "name": "JavaScript"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 4,
+    "fields": {
+      "name": "React"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 5,
+    "fields": {
+      "name": "HTML"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 6,
+    "fields": {
+      "name": "CSS"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 7,
+    "fields": {
+      "name": "PostgreSQL"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 8,
+    "fields": {
+      "name": "Docker"
+    }
+  },
+  {
+    "model": "projects.skill",
+    "pk": 9,
+    "fields": {
+      "name": "Git"
+    }
+  }
+]
