@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from apps.users.utils import generate_avatar
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, surname, phone, password=None, **extra_fields):
+    def create_user(self, email, name, surname, phone="", password=None, **extra_fields):
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, name, surname, phone, password=None, **extra_fields):
+    def create_superuser(self, email, name, surname, phone="", password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         
@@ -36,7 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=124)
     surname = models.CharField(max_length=124)
     avatar = models.ImageField(upload_to="avatars/", blank=True)
-    phone = models.CharField(max_length=12)
+    phone = models.CharField(max_length=12, blank=True)
     github_url = models.URLField(blank=True)
     about = models.TextField(max_length=256, blank=True)
     
