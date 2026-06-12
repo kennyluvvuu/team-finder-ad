@@ -28,3 +28,8 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ("name", "description", "github_url", "status")
+
+class ProjectSkillAddSerializer(serializers.Serializer):
+    skill_id = serializers.IntegerField(required=False, help_text="ID существующего навыка")
+    name = serializers.CharField(required=False, help_text="Название нового навыка для создания")
+
