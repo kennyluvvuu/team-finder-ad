@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -99,3 +100,62 @@ def toggle_participate_view(request, pk):
         participant = True
         
     return JsonResponse({"status": "ok", "participant": participant})
+
+def skills_autocomplete(request):
+    q = request.GET.get("q", "")
+    skills = Skill.objects.filter(name__istartswith=q)[:10]
+    data = [{"id": s.id, "name": s.name} for s in skills]
+    return JsonResponse(data, safe=False)
+
+@login_required
+@require_POST
+def skill_add_view(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    if project.owner != request.user:
+        return JsonResponse({"status": "error", "message": "Access denied"}, status=403)
+        
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+        
+    skill_id = body.get("skill_id")
+    name = body.get("name")
+    
+    skill = None
+    created = False
+    
+    if skill_id:
+        skill = get_object_or_404(Skill, id=skill_id)
+    elif name:
+        name = name.strip()
+        if not name:
+            return JsonResponse({"status": "error", "message": "Name cannot be empty"}, status=400)
+        skill, created = Skill.objects.get_or_create(name=name)
+        
+    if not skill:
+        return JsonResponse({"status": "error", "message": "Skill not found"}, status=404)
+        
+    added = False
+    if skill not in project.skills.all():
+        project.skills.add(skill)
+        added = True
+        
+    return JsonResponse({
+        "id": skill.id,
+        "name": skill.name,
+        "skill_id": skill.id,
+        "created": created,
+        "added": added
+    })
+
+@login_required
+@require_POST
+def skill_remove_view(request, pk, skill_id):
+    project = get_object_or_404(Project, pk=pk)
+    if project.owner != request.user:
+        return JsonResponse({"status": "error", "message": "Access denied"}, status=403)
+        
+    skill = get_object_or_404(Skill, id=skill_id)
+    project.skills.remove(skill)
+    return JsonResponse({"status": "ok"})
