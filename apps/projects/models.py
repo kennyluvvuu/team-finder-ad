@@ -1,11 +1,13 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
+
 
 class Skill(models.Model):
     name = models.CharField(max_length=124, unique=True)
 
     def __str__(self):
         return self.name
+
 
 class Project(models.Model):
     STATUS_CHOICES = [
@@ -18,25 +20,15 @@ class Project(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="owned_projects"
+        related_name="owned_projects",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     github_url = models.URLField(blank=True)
-    status = models.CharField(
-        max_length=6,
-        choices=STATUS_CHOICES,
-        default="open"
-    )
+    status = models.CharField(max_length=6, choices=STATUS_CHOICES, default="open")
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name="participated_projects",
-        blank=True
+        settings.AUTH_USER_MODEL, related_name="participated_projects", blank=True
     )
-    skills = models.ManyToManyField(
-        Skill,
-        related_name="projects",
-        blank=True
-    )
+    skills = models.ManyToManyField(Skill, related_name="projects", blank=True)
 
     def __str__(self):
         return self.name
