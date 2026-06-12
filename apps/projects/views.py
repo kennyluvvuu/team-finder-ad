@@ -1,194 +1,121 @@
 import json
-
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
-
-from apps.projects.forms import ProjectForm
+from rest_framework import status, generics, permissions, viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from django.http import Http404
 from apps.projects.models import Project, Skill
+from apps.projects.serializers import (
+    ProjectSerializer, ProjectCreateUpdateSerializer, SkillSerializer
+)
 
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.owner == request.user
 
-def project_list_view(request):
-    active_skill_name = request.GET.get("skill")
-    active_skill = None
+class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all().order_by("-created_at")
+    permission_classes = (IsOwnerOrReadOnly,)
 
-    projects_query = Project.objects.all().order_by("-created_at")
+    def get_serializer_class(self):
+        if self.action in ("create", "update", "partial_update"):
+            return ProjectCreateUpdateSerializer
+        return ProjectSerializer
 
-    if active_skill_name:
-        active_skill = Skill.objects.filter(name=active_skill_name).first()
-        if active_skill:
-            projects_query = projects_query.filter(skills=active_skill)
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
-    all_skills = Skill.objects.all().order_by("name")
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Filtering by multiple skills
+        # Accepts list of skills: ?skill=Python&skill=Django
+        # Or comma-separated: ?skills=Python,Django
+        skills_param = self.request.query_params.getlist("skills") or self.request.query_params.getlist("skill")
+        if not skills_param:
+            single_param = self.request.query_params.get("skills") or self.request.query_params.get("skill")
+            if single_param:
+                skills_param = [s.strip() for s in single_param.split(",") if s.strip()]
 
-    paginator = Paginator(projects_query, 6)  # 6 projects per page
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+        if skills_param:
+            for skill_name in skills_param:
+                queryset = queryset.filter(skills__name__iexact=skill_name)
+                
+        return queryset
 
-    query_prefix = f"skill={active_skill_name}&" if active_skill_name else ""
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def complete(self, request, pk=None):
+        project = self.get_object()
+        if project.owner != request.user:
+            return Response({"detail": "Вы не являетесь владельцем проекта."}, status=status.HTTP_403_FORBIDDEN)
+        project.status = "closed"
+        project.save()
+        return Response({"status": "ok", "project_status": "closed"})
 
-    return render(
-        request,
-        "projects/project_list.html",
-        {
-            "page_obj": page_obj,
-            "projects": projects_query,
-            "all_skills": all_skills,
-            "active_skill": active_skill,
-            "query_prefix": query_prefix,
-        },
-    )
+    @action(detail=True, methods=["post"], url_path="toggle-participate", permission_classes=[permissions.IsAuthenticated])
+    def toggle_participate(self, request, pk=None):
+        project = self.get_object()
+        if request.user in project.participants.all():
+            project.participants.remove(request.user)
+            participant = False
+        else:
+            project.participants.add(request.user)
+            participant = True
+        return Response({"status": "ok", "participant": participant})
 
+    @action(detail=True, methods=["post"], url_path="skills/add", permission_classes=[permissions.IsAuthenticated])
+    def skill_add(self, request, pk=None):
+        project = self.get_object()
+        if project.owner != request.user:
+            return Response({"detail": "Вы не являетесь владельцем проекта."}, status=status.HTTP_403_FORBIDDEN)
 
-def project_detail_view(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    return render(
-        request,
-        "projects/project-details.html",
-        {
-            "project": project,
-        },
-    )
-
-
-@login_required
-def create_project_view(request):
-    if request.method == "POST":
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.owner = request.user
-            project.save()
-            form.save_m2m()
-            return redirect(f"/projects/{project.id}/")
-    else:
-        form = ProjectForm()
-
-    return render(
-        request,
-        "projects/create-project.html",
-        {
-            "form": form,
-            "is_edit": False,
-        },
-    )
-
-
-@login_required
-def edit_project_view(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    if project.owner != request.user:
-        return HttpResponseForbidden("Вы не являетесь владельцем этого проекта.")
-
-    if request.method == "POST":
-        form = ProjectForm(request.POST, instance=project)
-        if form.is_valid():
-            project = form.save()
-            return redirect(f"/projects/{project.id}/")
-    else:
-        form = ProjectForm(instance=project)
-
-    return render(
-        request,
-        "projects/create-project.html",
-        {
-            "form": form,
-            "is_edit": True,
-        },
-    )
-
-
-@login_required
-@require_POST
-def complete_project_view(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    if project.owner != request.user:
-        return JsonResponse({"status": "error", "message": "Access denied"}, status=403)
-
-    project.status = "closed"
-    project.save()
-    return JsonResponse({"status": "ok", "project_status": "closed"})
-
-
-@login_required
-@require_POST
-def toggle_participate_view(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    if request.user in project.participants.all():
-        project.participants.remove(request.user)
-        participant = False
-    else:
-        project.participants.add(request.user)
-        participant = True
-
-    return JsonResponse({"status": "ok", "participant": participant})
-
-
-def skills_autocomplete(request):
-    q = request.GET.get("q", "")
-    skills = Skill.objects.filter(name__istartswith=q)[:10]
-    data = [{"id": s.pk, "name": s.name} for s in skills]
-    return JsonResponse(data, safe=False)
-
-
-@login_required
-@require_POST
-def skill_add_view(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    if project.owner != request.user:
-        return JsonResponse({"status": "error", "message": "Access denied"}, status=403)
-
-    try:
-        body = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
-
-    skill_id = body.get("skill_id")
-    name = body.get("name")
-
-    skill = None
-    created = False
-
-    if skill_id:
-        skill = get_object_or_404(Skill, id=skill_id)
-    elif name:
-        name = name.strip()
-        if not name:
-            return JsonResponse(
-                {"status": "error", "message": "Name cannot be empty"}, status=400
-            )
-        skill, created = Skill.objects.get_or_create(name=name)
-
-    if not skill:
-        return JsonResponse(
-            {"status": "error", "message": "Skill not found"}, status=404
-        )
-
-    added = False
-    if skill not in project.skills.all():
-        project.skills.add(skill)
-        added = True
-
-    return JsonResponse(
-        {
-            "id": skill.pk,
+        skill_id = request.data.get("skill_id")
+        name = request.data.get("name")
+        
+        skill = None
+        created = False
+        
+        if skill_id:
+            skill = get_object_or_404(Skill, id=skill_id)
+        elif name:
+            name = name.strip()
+            if not name:
+                return Response({"detail": "Название навыка не может быть пустым."}, status=status.HTTP_400_BAD_REQUEST)
+            skill, created = Skill.objects.get_or_create(name=name)
+            
+        if not skill:
+            return Response({"detail": "Навык не найден."}, status=status.HTTP_404_NOT_FOUND)
+            
+        added = False
+        if skill not in project.skills.all():
+            project.skills.add(skill)
+            added = True
+            
+        return Response({
+            "id": skill.id,
             "name": skill.name,
-            "skill_id": skill.pk,
+            "skill_id": skill.id,
             "created": created,
-            "added": added,
-        }
-    )
+            "added": added
+        })
 
+    @action(detail=True, methods=["post"], url_path="skills/(?P<skill_id>[^/.]+)/remove", permission_classes=[permissions.IsAuthenticated])
+    def skill_remove(self, request, pk=None, skill_id=None):
+        project = self.get_object()
+        if project.owner != request.user:
+            return Response({"detail": "Вы не являетесь владельцем проекта."}, status=status.HTTP_403_FORBIDDEN)
+            
+        skill = get_object_or_404(Skill, id=skill_id)
+        project.skills.remove(skill)
+        return Response({"status": "ok"})
 
-@login_required
-@require_POST
-def skill_remove_view(request, pk, skill_id):
-    project = get_object_or_404(Project, pk=pk)
-    if project.owner != request.user:
-        return JsonResponse({"status": "error", "message": "Access denied"}, status=403)
+class SkillAutocompleteAPIView(generics.ListAPIView):
+    serializer_class = SkillSerializer
+    permission_classes = (permissions.AllowAny,)
 
-    skill = get_object_or_404(Skill, id=skill_id)
-    project.skills.remove(skill)
-    return JsonResponse({"status": "ok"})
+    def get_queryset(self):
+        q = self.request.query_params.get("q", "")
+        return Skill.objects.filter(name__istartswith=q)[:10]

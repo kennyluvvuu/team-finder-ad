@@ -4,11 +4,12 @@ from apps.users import views
 app_name = "users"
 
 urlpatterns = [
-    path("register/", views.register_view, name="register"),
-    path("login/", views.login_view, name="login"),
-    path("logout/", views.logout_view, name="logout"),
-    path("list/", views.users_list_view, name="list"),
-    path("<int:pk>/", views.user_detail_view, name="detail"),
-    path("edit-profile/", views.edit_profile_view, name="edit_profile"),
-    path("change-password/", views.change_password_view, name="change_password"),
+    path("csrf/", views.GetCSRFToken.as_view(), name="csrf"),
+    path("register/", views.RegisterAPIView.as_view(), name="register"),
+    path("login/", views.LoginAPIView.as_view(), name="login"),
+    path("logout/", views.LogoutAPIView.as_view(), name="logout"),
+    path("list/", views.UserListAPIView.as_view(), name="list"),
+    path("profile/", views.UserProfileAPIView.as_view(), name="profile"),
+    path("<int:pk>/", views.UserDetailAPIView.as_view(), name="detail"),
+    path("change-password/", views.ChangePasswordAPIView.as_view(), name="change_password"),
 ]

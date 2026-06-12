@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from typing import Any
 
 
 class Skill(models.Model):
@@ -26,10 +27,10 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     github_url = models.URLField(blank=True, verbose_name="Ссылка на GitHub")
     status = models.CharField(max_length=6, choices=STATUS_CHOICES, default="open", verbose_name="Статус")
-    participants = models.ManyToManyField(
+    participants: "models.ManyToManyField[Any, Any]" = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="participated_projects", blank=True, verbose_name="Участники"
     )
-    skills = models.ManyToManyField(Skill, related_name="projects", blank=True, verbose_name="Навыки")
+    skills: "models.ManyToManyField[Skill, Any]" = models.ManyToManyField(Skill, related_name="projects", blank=True, verbose_name="Навыки")
 
     def __str__(self):
         return self.name

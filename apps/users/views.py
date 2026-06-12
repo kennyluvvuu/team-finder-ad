@@ -1,96 +1,101 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
+from rest_framework import status, generics, permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.contrib import messages
-from apps.users.forms import RegisterForm, LoginForm, EditProfileForm, ChangePasswordForm
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.middleware.csrf import get_token
+from apps.users.serializers import (
+    UserSerializer, UserProfileUpdateSerializer, RegisterSerializer,
+    LoginSerializer, ChangePasswordSerializer
+)
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect("/project/list/")
+class GetCSRFToken(APIView):
+    permission_classes = (permissions.AllowAny,)
     
-    if request.method == "POST":
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("/project/list/")
-    else:
-        form = RegisterForm()
-    
-    return render(request, "users/register.html", {"form": form})
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request, format=None):
+        return Response({"csrfToken": get_token(request)})
 
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect("/project/list/")
-        
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data["email"]
-            password = form.cleaned_data["password"]
+class RegisterAPIView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            login(request, user)
+            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LoginAPIView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data["email"]
+            password = serializer.validated_data["password"]
             user = authenticate(request, username=email, password=password)
             if user is not None:
                 login(request, user)
-                return redirect("/project/list/")
-            else:
-                form.add_error(None, "Неверный e-mail или пароль")
-    else:
-        form = LoginForm()
-        
-    return render(request, "users/login.html", {"form": form})
+                return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+            return Response({"detail": "Неверный e-mail или пароль"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def logout_view(request):
-    logout(request)
-    return redirect("/project/list/")
+class LogoutAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
 
-def users_list_view(request):
-    # Retrieve all users
-    users_list = User.objects.all().order_by("id")
-    paginator = Paginator(users_list, 9) # 9 per page
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    
-    return render(request, "users/participants.html", {
-        "page_obj": page_obj,
-    })
+    def post(self, request):
+        logout(request)
+        return Response({"detail": "Успешный выход"}, status=status.HTTP_200_OK)
 
-def user_detail_view(request, pk):
-    user_obj = get_object_or_404(User, pk=pk)
-    return render(request, "users/user-details.html", {
-        "user": user_obj,
-    })
+class UserListAPIView(generics.ListAPIView):
+    queryset = User.objects.all().order_by("id")
+    serializer_class = UserSerializer
+    permission_classes = (permissions.AllowAny,)
 
-@login_required
-def edit_profile_view(request):
-    if request.method == "POST":
-        form = EditProfileForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect(f"/users/{request.user.id}/")
-    else:
-        form = EditProfileForm(instance=request.user)
-        
-    return render(request, "users/edit_profile.html", {
-        "form": form,
-        "user": request.user
-    })
+class UserDetailAPIView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.AllowAny,)
 
-@login_required
-def change_password_view(request):
-    if request.method == "POST":
-        form = ChangePasswordForm(request.user, request.POST)
-        if form.is_valid():
-            request.user.set_password(form.cleaned_data["new_password1"])
-            request.user.save()
-            update_session_auth_hash(request, request.user) # keeps the user logged in
-            return redirect(f"/users/{request.user.id}/")
-    else:
-        form = ChangePasswordForm(request.user)
-        
-    return render(request, "users/change_password.html", {
-        "form": form,
-    })
+class UserProfileAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+    def put(self, request):
+        serializer = UserProfileUpdateSerializer(request.user, data=request.data, partial=False)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(UserSerializer(user).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        serializer = UserProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(UserSerializer(user).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ChangePasswordAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if not user.check_password(serializer.validated_data["old_password"]):
+                return Response({"old_password": "Неверный текущий пароль."}, status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(serializer.validated_data["new_password1"])
+            user.save()
+            login(request, user) # keeps user logged in
+            return Response({"detail": "Пароль успешно изменен"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

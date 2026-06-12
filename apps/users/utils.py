@@ -1,5 +1,6 @@
 import io
 import random
+from typing import Any
 
 from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
@@ -23,7 +24,7 @@ def generate_avatar(first_name: str) -> ContentFile:
     draw = ImageDraw.Draw(img)
 
     # Try to load a font
-    font = None
+    font: Any = None
     font_paths = [
         "/System/Library/Fonts/Helvetica.ttc",
         "/System/Library/Fonts/Supplemental/Arial.ttf",

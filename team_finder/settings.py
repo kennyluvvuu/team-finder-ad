@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "apps.users",
     "apps.projects",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -124,4 +125,16 @@ AUTH_USER_MODEL = "users.User"
 LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = "/project/list/"
 LOGOUT_REDIRECT_URL = "/project/list/"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,
+}
+
 
