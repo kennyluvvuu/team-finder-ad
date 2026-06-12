@@ -51,9 +51,9 @@ class EditProfileForm(forms.ModelForm):
         }
 
 class ChangePasswordForm(forms.Form):
-    old_password = forms.CharField(widget=forms.PasswordInput())
-    new_password1 = forms.CharField(widget=forms.PasswordInput())
-    new_password2 = forms.CharField(widget=forms.PasswordInput())
+    old_password = forms.CharField(label="Текущий пароль", widget=forms.PasswordInput())
+    new_password1 = forms.CharField(label="Новый пароль", widget=forms.PasswordInput())
+    new_password2 = forms.CharField(label="Подтвердите новый пароль", widget=forms.PasswordInput())
 
     def __init__(self, user, *args, **kwargs):
         self.user = user

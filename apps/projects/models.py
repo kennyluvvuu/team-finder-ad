@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Skill(models.Model):
-    name = models.CharField(max_length=124, unique=True)
+    name = models.CharField(max_length=124, unique=True, verbose_name="Название")
 
     def __str__(self):
         return self.name
@@ -11,24 +11,25 @@ class Skill(models.Model):
 
 class Project(models.Model):
     STATUS_CHOICES = [
-        ("open", "Open"),
-        ("closed", "Closed"),
+        ("open", "Открыт"),
+        ("closed", "Закрыт"),
     ]
 
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=200, verbose_name="Название")
+    description = models.TextField(blank=True, verbose_name="Описание")
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="owned_projects",
+        verbose_name="Автор",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    github_url = models.URLField(blank=True)
-    status = models.CharField(max_length=6, choices=STATUS_CHOICES, default="open")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    github_url = models.URLField(blank=True, verbose_name="Ссылка на GitHub")
+    status = models.CharField(max_length=6, choices=STATUS_CHOICES, default="open", verbose_name="Статус")
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="participated_projects", blank=True
+        settings.AUTH_USER_MODEL, related_name="participated_projects", blank=True, verbose_name="Участники"
     )
-    skills = models.ManyToManyField(Skill, related_name="projects", blank=True)
+    skills = models.ManyToManyField(Skill, related_name="projects", blank=True, verbose_name="Навыки")
 
     def __str__(self):
         return self.name

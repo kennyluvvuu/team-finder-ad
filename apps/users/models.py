@@ -33,13 +33,13 @@ class UserManager(BaseUserManager["User"]):
         return self.create_user(email, name, surname, phone, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
-    name = models.CharField(max_length=124)
-    surname = models.CharField(max_length=124)
-    avatar: models.ImageField = models.ImageField(upload_to="avatars/", blank=True)
-    phone = models.CharField(max_length=12, blank=True)
-    github_url = models.URLField(blank=True)
-    about = models.TextField(max_length=256, blank=True)
+    email = models.EmailField(unique=True, verbose_name="E-mail")
+    name = models.CharField(max_length=124, verbose_name="Имя")
+    surname = models.CharField(max_length=124, verbose_name="Фамилия")
+    avatar: models.ImageField = models.ImageField(upload_to="avatars/", blank=True, verbose_name="Аватар")
+    phone = models.CharField(max_length=12, blank=True, verbose_name="Номер телефона")
+    github_url = models.URLField(blank=True, verbose_name="Ссылка на GitHub")
+    about = models.TextField(max_length=256, blank=True, verbose_name="О себе")
     
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
