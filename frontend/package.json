@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --hot src/index.ts",
-    "start": "NODE_ENV=production bun src/index.ts",
-    "build": "bun run build.ts"
+    "dev": "vite",
+    "build": "vite build",
+    "start": "bun run build && NODE_ENV=production bun src/index.ts"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
@@ -26,9 +26,12 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/bun": "latest",
-    "tailwindcss": "^4.1.11"
+    "@vitejs/plugin-react": "^6.0.2",
+    "tailwindcss": "^4.1.11",
+    "vite": "^8.0.16"
   }
 }

@@ -1,18 +1,19 @@
 import { serve } from "bun";
-import index from "./index.html";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000";
 
 const server = serve({
-  routes: {
-    "/api/*": async (req) => {
-      const url = new URL(req.url);
-      const targetUrl = `${BACKEND_URL}${url.pathname}${url.search}`;
+  port: 3000,
+  async fetch(req: Request) {
+    const url = new URL(req.url);
+    const pathname = url.pathname;
+
+    // 1. Proxy API requests
+    if (pathname.startsWith("/api/")) {
+      const targetUrl = `${BACKEND_URL}${pathname}${url.search}`;
       const headers = new Headers(req.headers);
       headers.delete("host");
-      
       const body = req.method !== "GET" && req.method !== "HEAD" ? await req.blob() : undefined;
-      
       try {
         return await fetch(targetUrl, {
           method: req.method,
@@ -24,14 +25,13 @@ const server = serve({
         console.error("Proxy error for target:", targetUrl, e);
         return Response.json({ error: "Backend server is offline" }, { status: 502 });
       }
-    },
+    }
 
-    "/media/*": async (req) => {
-      const url = new URL(req.url);
-      const targetUrl = `${BACKEND_URL}${url.pathname}${url.search}`;
+    // 2. Proxy Media requests
+    if (pathname.startsWith("/media/")) {
+      const targetUrl = `${BACKEND_URL}${pathname}${url.search}`;
       const headers = new Headers(req.headers);
       headers.delete("host");
-      
       try {
         return await fetch(targetUrl, {
           method: req.method,
@@ -41,20 +41,24 @@ const server = serve({
       } catch (e) {
         return Response.json({ error: "Backend server is offline" }, { status: 502 });
       }
-    },
+    }
 
-    // Serve index.html for all unmatched routes.
-    "/*": index,
-  },
+    // 3. Serve static assets from the `dist` directory
+    const filePath = `dist${pathname}`;
+    const file = Bun.file(filePath);
+    if (pathname !== "/" && !pathname.endsWith("/") && await file.exists()) {
+      return new Response(file);
+    }
 
-  development: process.env.NODE_ENV !== "production" && {
-    // Enable browser hot reloading in development
-    hmr: true,
+    // 4. Fallback to dist/index.html (for client-side routing / SPA)
+    const indexFile = Bun.file("dist/index.html");
+    if (await indexFile.exists()) {
+      return new Response(indexFile);
+    }
 
-    // Echo console logs from the browser to the server
-    console: true,
-  },
+    return new Response("Not Found", { status: 404 });
+  }
 });
 
-console.log(`🚀 Server running at ${server.url}`);
+console.log(`🚀 Production server running at ${server.url}`);
 
