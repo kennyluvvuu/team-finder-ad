@@ -116,15 +116,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
         # Filtering by multiple skills
         # Accepts list of skills: ?skill=Python&skill=Django
         # Or comma-separated: ?skills=Python,Django
-        skills_param = self.request.GET.getlist("skills") or self.request.GET.getlist(
-            "skill"
-        )
-        if not skills_param:
-            single_param = self.request.GET.get("skills") or self.request.GET.get(
-                "skill"
-            )
-            if single_param:
-                skills_param = [s.strip() for s in single_param.split(",") if s.strip()]
+        skills_param = []
+        for key in ("skills", "skill"):
+            for val in self.request.GET.getlist(key):
+                if val:
+                    for s in val.split(","):
+                        s_cleaned = s.strip()
+                        if s_cleaned and s_cleaned not in skills_param:
+                            skills_param.append(s_cleaned)
 
         if skills_param:
             for skill_name in skills_param:
