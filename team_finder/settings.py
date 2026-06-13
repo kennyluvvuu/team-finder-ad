@@ -1,3 +1,4 @@
+import socket
 from pathlib import Path
 from decouple import config
 
@@ -11,11 +12,43 @@ DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")])
 
+# Ensure localhost and common docker services are always allowed
+for host in ["localhost", "127.0.0.1", "backend", "web"]:
+    if host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+
+# Add SITE_DOMAIN if set
+site_domain = config("SITE_DOMAIN", default="")
+if site_domain:
+    clean_domain = site_domain.split("://")[-1].split(":")[0]
+    if clean_domain not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(clean_domain)
+
+# Dynamically add the container's own hostname and IP to ALLOWED_HOSTS
+try:
+    hostname = socket.gethostname()
+    if hostname and hostname not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(hostname)
+    
+    local_ip = socket.gethostbyname(hostname)
+    if local_ip and local_ip not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(local_ip)
+except Exception:
+    pass
+
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
     default="http://localhost:3000,http://127.0.0.1:3000,http://localhost,http://127.0.0.1",
     cast=lambda v: [s.strip() for s in v.split(",")]
 )
+
+# Dynamically add SITE_DOMAIN (http and https) to CSRF_TRUSTED_ORIGINS
+if site_domain:
+    clean_domain = site_domain.split("://")[-1]
+    for proto in ["http", "https"]:
+        origin = f"{proto}://{clean_domain}"
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
 
 
 # Application definition
