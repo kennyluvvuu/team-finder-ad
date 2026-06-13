@@ -3,17 +3,41 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { z } from "zod";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { UserPlus, Loader2, Mail, Lock, User as UserIcon, Phone, AlertCircle } from "lucide-react";
+import {
+  UserPlus,
+  Loader2,
+  Mail,
+  Lock,
+  User as UserIcon,
+  Phone,
+  AlertCircle,
+} from "lucide-react";
 
 const registerSchema = z.object({
-  email: z.string().min(1, "E-mail обязателен для заполнения").email("Некорректный формат e-mail"),
+  email: z
+    .string()
+    .min(1, "E-mail обязателен для заполнения")
+    .email("Некорректный формат e-mail"),
   name: z.string().min(1, "Имя обязательно").max(124, "Максимум 124 символа"),
-  surname: z.string().min(1, "Фамилия обязательна").max(124, "Максимум 124 символа"),
-  phone: z.string().min(1, "Номер телефона обязателен").max(12, "Максимум 12 символов (например, +79991234567)"),
+  surname: z
+    .string()
+    .min(1, "Фамилия обязательна")
+    .max(124, "Максимум 124 символа"),
+  phone: z
+    .string()
+    .min(1, "Номер телефона обязателен")
+    .max(12, "Максимум 12 символов (например, +79991234567)"),
   password: z.string().min(6, "Пароль должен содержать не менее 6 символов"),
 });
 
@@ -22,7 +46,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState<RegisterForm>({
     email: "",
     name: "",
@@ -70,10 +94,14 @@ export function Register() {
         const keys = Object.keys(err.data);
         const firstKey = keys[0];
         if (firstKey !== undefined) {
-          const errorMsg = Array.isArray(err.data[firstKey]) ? err.data[firstKey][0] : err.data[firstKey];
+          const errorMsg = Array.isArray(err.data[firstKey])
+            ? err.data[firstKey][0]
+            : err.data[firstKey];
           setApiError(`${firstKey}: ${errorMsg}`);
         } else {
-          setApiError("Ошибка регистрации. Возможно, этот E-mail уже используется.");
+          setApiError(
+            "Ошибка регистрации. Возможно, этот E-mail уже используется.",
+          );
         }
       } else {
         setApiError(err?.message || "Ошибка при регистрации");
@@ -95,7 +123,7 @@ export function Register() {
           </CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <CardContent className="space-y-4">
             {apiError && (
               <Alert variant="destructive">
@@ -122,7 +150,9 @@ export function Register() {
                 />
               </div>
               {formErrors.email && (
-                <p className="text-xs font-semibold text-destructive">{formErrors.email}</p>
+                <p className="text-xs font-semibold text-destructive">
+                  {formErrors.email}
+                </p>
               )}
             </div>
 
@@ -145,7 +175,9 @@ export function Register() {
                   />
                 </div>
                 {formErrors.name && (
-                  <p className="text-xs font-semibold text-destructive">{formErrors.name}</p>
+                  <p className="text-xs font-semibold text-destructive">
+                    {formErrors.name}
+                  </p>
                 )}
               </div>
 
@@ -166,7 +198,9 @@ export function Register() {
                   />
                 </div>
                 {formErrors.surname && (
-                  <p className="text-xs font-semibold text-destructive">{formErrors.surname}</p>
+                  <p className="text-xs font-semibold text-destructive">
+                    {formErrors.surname}
+                  </p>
                 )}
               </div>
             </div>
@@ -188,7 +222,9 @@ export function Register() {
                 />
               </div>
               {formErrors.phone && (
-                <p className="text-xs font-semibold text-destructive">{formErrors.phone}</p>
+                <p className="text-xs font-semibold text-destructive">
+                  {formErrors.phone}
+                </p>
               )}
             </div>
 
@@ -209,7 +245,9 @@ export function Register() {
                 />
               </div>
               {formErrors.password && (
-                <p className="text-xs font-semibold text-destructive">{formErrors.password}</p>
+                <p className="text-xs font-semibold text-destructive">
+                  {formErrors.password}
+                </p>
               )}
             </div>
           </CardContent>
@@ -248,4 +286,3 @@ export function Register() {
     </div>
   );
 }
-

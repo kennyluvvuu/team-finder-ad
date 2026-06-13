@@ -4,7 +4,23 @@
 <header class="site-header">
     <div class="container">
         <div class="header-content">
-            <a href="/projects/list" class="logo-link">TeamFinder</a>
+            <a
+                href="/projects/list"
+                class="logo-link"
+                style="display: flex; align-items: center; gap: 8px"
+            >
+                <img
+                    src="{% static 'images/logo.svg' %}"
+                    alt="TeamFinder"
+                    style="
+                        height: 32px;
+                        width: auto;
+                        max-width: 120px;
+                        object-fit: contain;
+                    "
+                />
+                <span>TeamFinder</span>
+            </a>
 
             <nav class="main-nav">
                 <a href="/projects/list" class="nav-link">
@@ -19,24 +35,44 @@
 
             <div class="user-actions">
                 {% if request.user.is_authenticated %}
-                <a href="/projects/create-project" class="button nav-link black">
+                <a
+                    href="/projects/create-project"
+                    class="button nav-link black"
+                >
                     {% include 'includes/svg/plus.html' %}
                     <p>Создать проект</p>
                 </a>
                 <a class="user-menu nav-link">
                     {% if request.user.avatar %}
-                        <img src="{{ request.user.avatar.url }}" alt="Аватар" class="avatar">
+                    <img
+                        src="{{ request.user.avatar.url }}"
+                        alt="Аватар"
+                        class="avatar"
+                    />
                     {% else %}
-                        <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="avatar">
+                    <img
+                        src="{% static 'images/default-avatar.png' %}"
+                        alt="Аватар по умолчанию"
+                        class="avatar"
+                    />
                     {% endif %}
-                    <span class="username">{{ request.user.name }} {{ request.user.surname }}</span>
+                    <span class="username"
+                        >{{ request.user.name }} {{ request.user.surname
+                        }}</span
+                    >
                 </a>
                 {% else %}
-                <button class="button button-login nav-link" onclick="window.location.href='/users/login/'">
+                <button
+                    class="button button-login nav-link"
+                    onclick="window.location.href = '/users/login/'"
+                >
                     {% include 'includes/svg/login.html' %}
                     <p>Войти</p>
                 </button>
-                <button class="button button-register nav-link black" onclick="window.location.href='/users/register/'">
+                <button
+                    class="button button-register nav-link black"
+                    onclick="window.location.href = '/users/register/'"
+                >
                     {% include 'includes/svg/register.html' %}
                     <p>Регистрация</p>
                 </button>
@@ -47,15 +83,34 @@
 </header>
 <div id="userSidebar" class="user-sidebar">
     <div class="sidebar-content">
-        <a href="/users/{{ request.user.id }}/"><span>{% include 'includes/svg/profile.html' %} Мой профиль</span></a>
-        <a href="/users/edit-profile/"><span>{% include 'includes/svg/settings.html' %} Редактировать профиль</span></a>
-        <a href="/users/change-password/"><span>{% include 'includes/svg/lock.html' %} Сменить пароль</span></a>
-        <a href="#"
-           class="share-button"
-           data-url="/users/{{ request.user.id }}">
+        <a href="/users/{{ request.user.id }}/"
+            ><span
+                >{% include 'includes/svg/profile.html' %} Мой профиль</span
+            ></a
+        >
+        <a href="/users/edit-profile/"
+            ><span
+                >{% include 'includes/svg/settings.html' %} Редактировать
+                профиль</span
+            ></a
+        >
+        <a href="/users/change-password/"
+            ><span
+                >{% include 'includes/svg/lock.html' %} Сменить пароль</span
+            ></a
+        >
+        <a
+            href="#"
+            class="share-button"
+            data-url="/users/{{ request.user.id }}"
+        >
             {% include 'includes/svg/share.html' %} Поделиться профилем
         </a>
-        <hr class="sidebar-divider">
-        <a href="/users/logout/"><span style="color: #e7000b;">{% include 'includes/svg/leave.html' %} Выйти</span></a>
+        <hr class="sidebar-divider" />
+        <a href="/users/logout/"
+            ><span style="color: #e7000b"
+                >{% include 'includes/svg/leave.html' %} Выйти</span
+            ></a
+        >
     </div>
 </div>

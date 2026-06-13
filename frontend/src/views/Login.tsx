@@ -3,14 +3,24 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { z } from "zod";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { LogIn, Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 
 const loginSchema = z.object({
-  email: z.string().min(1, "E-mail обязателен для заполнения").email("Некорректный формат e-mail"),
+  email: z
+    .string()
+    .min(1, "E-mail обязателен для заполнения")
+    .email("Некорректный формат e-mail"),
   password: z.string().min(1, "Пароль обязателен для заполнения"),
 });
 
@@ -19,7 +29,10 @@ type LoginForm = z.infer<typeof loginSchema>;
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<LoginForm>({ email: "", password: "" });
+  const [formData, setFormData] = useState<LoginForm>({
+    email: "",
+    password: "",
+  });
   const [formErrors, setFormErrors] = useState<Partial<LoginForm>>({});
   const [apiError, setApiError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +68,9 @@ export function Login() {
       navigate("/projects");
     } catch (err: any) {
       console.error(err);
-      setApiError(err?.data?.detail || err?.message || "Неверный e-mail или пароль");
+      setApiError(
+        err?.data?.detail || err?.message || "Неверный e-mail или пароль",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -73,7 +88,7 @@ export function Login() {
           </CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <CardContent className="space-y-4">
             {apiError && (
               <Alert variant="destructive">
@@ -100,7 +115,9 @@ export function Login() {
                 />
               </div>
               {formErrors.email && (
-                <p className="text-xs font-semibold text-destructive">{formErrors.email}</p>
+                <p className="text-xs font-semibold text-destructive">
+                  {formErrors.email}
+                </p>
               )}
             </div>
 
@@ -123,7 +140,9 @@ export function Login() {
                 />
               </div>
               {formErrors.password && (
-                <p className="text-xs font-semibold text-destructive">{formErrors.password}</p>
+                <p className="text-xs font-semibold text-destructive">
+                  {formErrors.password}
+                </p>
               )}
             </div>
           </CardContent>
@@ -162,4 +181,3 @@ export function Login() {
     </div>
   );
 }
-

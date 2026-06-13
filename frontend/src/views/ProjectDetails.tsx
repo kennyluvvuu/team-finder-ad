@@ -10,7 +10,13 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
@@ -32,7 +38,10 @@ import {
 import { Github } from "../components/icons/Github";
 
 const editProjectSchema = z.object({
-  name: z.string().min(1, "Название обязательно").max(200, "Не более 200 символов"),
+  name: z
+    .string()
+    .min(1, "Название обязательно")
+    .max(200, "Не более 200 символов"),
   description: z.string().optional(),
   github_url: z
     .string()
@@ -53,9 +62,13 @@ export function ProjectDetails() {
   // Modal States
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  
+
   // Form States
-  const [formData, setFormData] = useState<EditProjectForm>({ name: "", description: "", github_url: "" });
+  const [formData, setFormData] = useState<EditProjectForm>({
+    name: "",
+    description: "",
+    github_url: "",
+  });
   const [formErrors, setFormErrors] = useState<Partial<EditProjectForm>>({});
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -125,7 +138,9 @@ export function ProjectDetails() {
     return (
       <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[50vh]">
         <Loader2 className="w-10 h-10 animate-spin text-primary mb-2" />
-        <span className="text-muted-foreground text-sm font-medium">Загрузка деталей проекта...</span>
+        <span className="text-muted-foreground text-sm font-medium">
+          Загрузка деталей проекта...
+        </span>
       </div>
     );
   }
@@ -133,28 +148,40 @@ export function ProjectDetails() {
   if (isError || !project) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-1.5">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6 gap-1.5"
+        >
           <ArrowLeft className="w-4 h-4" />
           Назад
         </Button>
         <Alert variant="destructive">
           <AlertCircle className="w-5 h-5" />
           <AlertTitle>Ошибка загрузки</AlertTitle>
-          <AlertDescription>{error?.message || "Проект не найден или у вас нет прав на его просмотр."}</AlertDescription>
+          <AlertDescription>
+            {error?.message ||
+              "Проект не найден или у вас нет прав на его просмотр."}
+          </AlertDescription>
         </Alert>
       </div>
     );
   }
 
   const isOwner = user ? project.owner.id === user.id : false;
-  const isParticipant = user ? project.participants.some((p) => p.id === user.id) : false;
+  const isParticipant = user
+    ? project.participants.some((p) => p.id === user.id)
+    : false;
   const isClosed = project.status === "closed";
 
-  const formattedDate = new Date(project.created_at).toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const formattedDate = new Date(project.created_at).toLocaleDateString(
+    "ru-RU",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    },
+  );
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,8 +227,7 @@ export function ProjectDetails() {
         to="/projects"
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        К списку проектов
+        <ArrowLeft className="w-4 h-4" />К списку проектов
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -237,7 +263,7 @@ export function ProjectDetails() {
             <h1 className="text-3xl font-extrabold text-foreground mb-4 tracking-tight leading-tight">
               {project.name}
             </h1>
-            
+
             <div className="text-muted-foreground text-sm sm:text-base leading-relaxed whitespace-pre-line">
               {project.description || "Описание проекта не заполнено."}
             </div>
@@ -247,9 +273,12 @@ export function ProjectDetails() {
               <div className="mt-8 pt-6 border-t border-border/50">
                 <Button
                   onClick={() => participateMutation.mutate()}
-                  disabled={participateMutation.isPending || (isClosed && !isParticipant)}
+                  disabled={
+                    participateMutation.isPending ||
+                    (isClosed && !isParticipant)
+                  }
                   variant={isParticipant ? "destructive" : "default"}
-                  className="font-semibold"
+                  className="font-semibold w-full sm:w-auto"
                 >
                   {participateMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -277,14 +306,16 @@ export function ProjectDetails() {
           {/* Project Required Skills */}
           <Card className="border border-border/60 bg-card/70 backdrop-blur-md p-6 shadow-sm">
             <CardHeader className="p-0 pb-4 mb-4 border-b border-border/40">
-              <CardTitle className="text-lg font-bold">Необходимые навыки</CardTitle>
+              <CardTitle className="text-lg font-bold">
+                Необходимые навыки
+              </CardTitle>
               <CardDescription className="text-xs">
                 {isOwner
                   ? "Управляйте требованиями: добавляйте новые навыки или удаляйте ненужные"
                   : "Навыки, необходимые для участия в этом проекте"}
               </CardDescription>
             </CardHeader>
-            
+
             <CardContent className="p-0 space-y-4">
               {/* Tags Cloud */}
               <div className="flex flex-wrap gap-2">
@@ -293,11 +324,15 @@ export function ProjectDetails() {
                     <SkillBadge
                       key={skill.id}
                       name={skill.name}
-                      onRemove={isOwner ? () => handleRemoveSkill(skill.id) : undefined}
+                      onRemove={
+                        isOwner ? () => handleRemoveSkill(skill.id) : undefined
+                      }
                     />
                   ))
                 ) : (
-                  <span className="text-sm text-muted-foreground italic">Навыки еще не указаны</span>
+                  <span className="text-sm text-muted-foreground italic">
+                    Навыки еще не указаны
+                  </span>
                 )}
               </div>
 
@@ -316,21 +351,24 @@ export function ProjectDetails() {
         </div>
 
         {/* Sidebar Info & Controls */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 self-start">
           {/* Owner details */}
           <Card className="border border-border/60 bg-card p-6 shadow-sm">
             <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider mb-4">
               Автор проекта
             </h3>
-            
+
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 border-2 border-primary/20">
-                <AvatarImage src={project.owner.avatar} alt={project.owner.name} />
+                <AvatarImage
+                  src={project.owner.avatar}
+                  alt={project.owner.name}
+                />
                 <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
                   {`${project.owner.name[0] || ""}${project.owner.surname[0] || ""}`.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="overflow-hidden">
                 <Link
                   to={`/users/${project.owner.id}`}
@@ -344,30 +382,38 @@ export function ProjectDetails() {
           </Card>
 
           {/* Participants list */}
-          <Card className="border p-6 shadow-sm">
+          <Card className="border p-6 shadow-xs">
             <div className="flex items-center justify-between gap-4 border-b pb-3 mb-4">
               <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">
                 Участники команды
               </h3>
-              <span className="text-xs font-bold text-muted-foreground px-2 py-0.5 bg-muted rounded-full">
+              <span className="text-xs font-bold text-muted-foreground px-1.5 py-0.5 bg-muted border rounded-none">
                 {project.participants.length}
               </span>
             </div>
 
             {project.participants.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">Пока нет участников команды</p>
+              <p className="text-sm text-muted-foreground italic">
+                Пока нет участников команды
+              </p>
             ) : (
               <div className="space-y-3">
                 {project.participants.map((participant) => (
-                  <div key={participant.id} className="flex items-center justify-between gap-2">
+                  <div
+                    key={participant.id}
+                    className="flex items-center justify-between gap-2"
+                  >
                     <div className="flex items-center gap-2 overflow-hidden">
                       <Avatar className="h-8 w-8 border">
-                        <AvatarImage src={participant.avatar} alt={participant.name} />
+                        <AvatarImage
+                          src={participant.avatar}
+                          alt={participant.name}
+                        />
                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-[10px]">
                           {`${participant.name[0] || ""}${participant.surname[0] || ""}`.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      
+
                       <Link
                         to={`/users/${participant.id}`}
                         className="text-sm font-semibold hover:text-primary block truncate transition-colors"
@@ -378,7 +424,10 @@ export function ProjectDetails() {
 
                     {/* Owner indicator */}
                     {participant.id === project.owner.id && (
-                      <Badge variant="outline" className="text-[9px] py-0 px-1.5">
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] py-0 px-1.5"
+                      >
                         Автор
                       </Badge>
                     )}
@@ -438,7 +487,11 @@ export function ProjectDetails() {
       </div>
 
       {/* Edit Project Modal */}
-      <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Редактировать проект">
+      <Modal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title="Редактировать проект"
+      >
         <form onSubmit={handleEditSubmit} className="space-y-4">
           {errorMsg && (
             <Alert variant="destructive">
@@ -463,7 +516,9 @@ export function ProjectDetails() {
               disabled={updateMutation.isPending}
             />
             {formErrors.name && (
-              <p className="text-xs font-semibold text-destructive">{formErrors.name}</p>
+              <p className="text-xs font-semibold text-destructive">
+                {formErrors.name}
+              </p>
             )}
           </div>
 
@@ -475,7 +530,9 @@ export function ProjectDetails() {
               name="description"
               className="min-h-[120px] resize-y"
               value={formData.description}
-              onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, description: e.target.value }))
+              }
               disabled={updateMutation.isPending}
             />
           </div>
@@ -499,7 +556,9 @@ export function ProjectDetails() {
               />
             </div>
             {formErrors.github_url && (
-              <p className="text-xs font-semibold text-destructive">{formErrors.github_url}</p>
+              <p className="text-xs font-semibold text-destructive">
+                {formErrors.github_url}
+              </p>
             )}
           </div>
 
@@ -531,11 +590,17 @@ export function ProjectDetails() {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Удалить проект?">
+      <Modal
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        title="Удалить проект?"
+      >
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Вы собираетесь безвозвратно удалить проект <strong className="text-foreground">"{project.name}"</strong>.
-            Это действие нельзя будет отменить. Все связи с участниками и навыками будут потеряны.
+            Вы собираетесь безвозвратно удалить проект{" "}
+            <strong className="text-foreground">"{project.name}"</strong>. Это
+            действие нельзя будет отменить. Все связи с участниками и навыками
+            будут потеряны.
           </p>
 
           <div className="flex justify-end gap-2 border-t border-border/50 pt-4 mt-6">

@@ -8,10 +8,22 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 import {
   User as UserIcon,
   Mail,
@@ -29,8 +41,14 @@ import { Github } from "../components/icons/Github";
 // Zod schemas
 const profileSchema = z.object({
   name: z.string().min(1, "Имя обязательно").max(124, "Не более 124 символов"),
-  surname: z.string().min(1, "Фамилия обязательна").max(124, "Не более 124 символов"),
-  phone: z.string().min(1, "Номер телефона обязателен").max(12, "Не более 12 символов"),
+  surname: z
+    .string()
+    .min(1, "Фамилия обязательна")
+    .max(124, "Не более 124 символов"),
+  phone: z
+    .string()
+    .min(1, "Номер телефона обязателен")
+    .max(12, "Не более 12 символов"),
   github_url: z
     .string()
     .url("Некорректный URL (должен начинаться с http:// или https://)")
@@ -44,7 +62,9 @@ type ProfileForm = z.infer<typeof profileSchema>;
 const passwordSchema = z
   .object({
     old_password: z.string().min(1, "Введите старый пароль"),
-    new_password1: z.string().min(6, "Новый пароль должен быть не менее 6 символов"),
+    new_password1: z
+      .string()
+      .min(6, "Новый пароль должен быть не менее 6 символов"),
     new_password2: z.string().min(6, "Повторите новый пароль"),
   })
   .refine((data) => data.new_password1 === data.new_password2, {
@@ -64,7 +84,9 @@ export function UserProfile() {
   const { user: currentUser, logout } = useAuth();
 
   // Active Tab: 'info' | 'edit' | 'password'
-  const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
+    "info",
+  );
 
   // Notifications
   const [successMsg, setSuccessMsg] = useState("");
@@ -85,7 +107,9 @@ export function UserProfile() {
     new_password1: "",
     new_password2: "",
   });
-  const [passwordErrors, setPasswordErrors] = useState<Partial<PasswordForm>>({});
+  const [passwordErrors, setPasswordErrors] = useState<Partial<PasswordForm>>(
+    {},
+  );
 
   // File Upload State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -141,7 +165,11 @@ export function UserProfile() {
     mutationFn: api.changePassword,
     onSuccess: () => {
       setSuccessMsg("Пароль успешно изменен!");
-      setPasswordForm({ old_password: "", new_password1: "", new_password2: "" });
+      setPasswordForm({
+        old_password: "",
+        new_password1: "",
+        new_password2: "",
+      });
       setPasswordErrors({});
       setErrorMsg("");
       setActiveTab("info");
@@ -163,7 +191,8 @@ export function UserProfile() {
           <Lock className="w-12 h-12 text-primary mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Требуется авторизация</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Пожалуйста, войдите в свой аккаунт, чтобы просмотреть настройки профиля.
+            Пожалуйста, войдите в свой аккаунт, чтобы просмотреть настройки
+            профиля.
           </p>
           <Button onClick={() => navigate("/login")} className="w-full">
             Войти
@@ -177,7 +206,9 @@ export function UserProfile() {
     return (
       <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[50vh]">
         <Loader2 className="w-10 h-10 animate-spin text-primary mb-2" />
-        <span className="text-muted-foreground text-sm font-medium">Загрузка профиля...</span>
+        <span className="text-muted-foreground text-sm font-medium">
+          Загрузка профиля...
+        </span>
       </div>
     );
   }
@@ -185,11 +216,13 @@ export function UserProfile() {
   if (isError || !profileUser) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-xl">
-        <div className="flex items-center gap-2 rounded-xl bg-destructive/10 border border-destructive/30 p-4 text-destructive">
+        <div className="flex items-center gap-2 rounded-none bg-destructive/10 border border-destructive/30 p-4 text-destructive">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <div>
             <h4 className="font-semibold">Профиль не найден</h4>
-            <p className="text-sm">{error?.message || "Такого пользователя не существует."}</p>
+            <p className="text-sm">
+              {error?.message || "Такого пользователя не существует."}
+            </p>
           </div>
         </div>
       </div>
@@ -219,10 +252,11 @@ export function UserProfile() {
       formData.append("name", profileForm.name);
       formData.append("surname", profileForm.surname);
       formData.append("phone", profileForm.phone);
-      if (profileForm.github_url) formData.append("github_url", profileForm.github_url);
+      if (profileForm.github_url)
+        formData.append("github_url", profileForm.github_url);
       if (profileForm.about) formData.append("about", profileForm.about);
       formData.append("avatar", selectedFile);
-      
+
       updateProfileMutation.mutate(formData);
     } else {
       updateProfileMutation.mutate(profileForm);
@@ -253,7 +287,7 @@ export function UserProfile() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
-      
+
       // Preview locally
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -272,7 +306,9 @@ export function UserProfile() {
     return `${profileUser.name[0] || ""}${profileUser.surname[0] || ""}`.toUpperCase();
   };
 
-  const isRealOwnProfile = currentUser ? profileUser.id === currentUser.id : false;
+  const isRealOwnProfile = currentUser
+    ? profileUser.id === currentUser.id
+    : false;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -292,15 +328,22 @@ export function UserProfile() {
         </Alert>
       )}
 
-      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(val) => setActiveTab(val as any)}
+        className="w-full"
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left Side: Avatar Card */}
-          <div className="md:col-span-1 space-y-6">
+          <div className="md:col-span-1 space-y-6 md:sticky md:top-24 self-start">
             <Card className="border bg-card text-center p-6 relative overflow-hidden">
               {/* Avatar block */}
               <div className="relative inline-block mx-auto mt-4 mb-4">
                 <Avatar className="h-28 w-28 border-4">
-                  <AvatarImage src={avatarPreview || undefined} alt={profileUser.name} />
+                  <AvatarImage
+                    src={avatarPreview || undefined}
+                    alt={profileUser.name}
+                  />
                   <AvatarFallback className="bg-primary text-primary-foreground font-bold text-3xl">
                     {getUserInitials()}
                   </AvatarFallback>
@@ -310,7 +353,7 @@ export function UserProfile() {
                 {isRealOwnProfile && activeTab === "edit" && (
                   <label
                     htmlFor="avatar-input"
-                    className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:opacity-90 flex items-center justify-center cursor-pointer shadow-lg transition-transform hover:scale-105"
+                    className="absolute bottom-0 right-0 h-8 w-8 rounded-none border border-background bg-primary text-primary-foreground hover:opacity-90 flex items-center justify-center cursor-pointer shadow-xs transition-transform hover:scale-105"
                     title="Изменить аватар"
                   >
                     <Camera className="w-4 h-4" />
@@ -328,7 +371,9 @@ export function UserProfile() {
               <h2 className="text-xl font-bold text-foreground">
                 {profileUser.name} {profileUser.surname}
               </h2>
-              <p className="text-xs text-muted-foreground mt-1">{profileUser.email}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {profileUser.email}
+              </p>
 
               {/* Profile Navigation (Own profile only) */}
               {isRealOwnProfile && (
@@ -340,7 +385,7 @@ export function UserProfile() {
                     <UserIcon className="w-4 h-4 mr-2" />
                     Просмотр профиля
                   </TabsTrigger>
-                  
+
                   <TabsTrigger
                     value="edit"
                     className="w-full justify-start font-semibold text-sm px-3 py-2"
@@ -376,32 +421,43 @@ export function UserProfile() {
             <TabsContent value="info" className="m-0 space-y-6 outline-none">
               <Card className="border border-border/60 bg-card p-6 sm:p-8 shadow-sm space-y-6">
                 <div>
-                  <h3 className="text-xl font-bold tracking-tight mb-2">О себе</h3>
+                  <h3 className="text-xl font-bold tracking-tight mb-2">
+                    О себе
+                  </h3>
                   <p className="text-muted-foreground text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
                     {profileUser.about || "Информация отсутствует."}
                   </p>
                 </div>
 
                 <div className="border-t border-border/50 pt-6 space-y-4">
-                  <h3 className="text-lg font-bold tracking-tight">Контактная информация</h3>
-                  
+                  <h3 className="text-lg font-bold tracking-tight">
+                    Контактная информация
+                  </h3>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Email */}
-                    <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/10">
+                    <div className="flex items-center gap-3 p-3 rounded-none border bg-muted/10">
                       <Mail className="w-5 h-5 text-primary shrink-0" />
                       <div className="overflow-hidden">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground block">Email</span>
-                        <a href={`mailto:${profileUser.email}`} className="text-sm font-semibold hover:underline block truncate">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                          Email
+                        </span>
+                        <a
+                          href={`mailto:${profileUser.email}`}
+                          className="text-sm font-semibold hover:underline block truncate"
+                        >
                           {profileUser.email}
                         </a>
                       </div>
                     </div>
 
                     {/* Phone */}
-                    <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/10">
+                    <div className="flex items-center gap-3 p-3 rounded-none border bg-muted/10">
                       <Phone className="w-5 h-5 text-primary shrink-0" />
                       <div className="overflow-hidden">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground block">Телефон</span>
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                          Телефон
+                        </span>
                         <span className="text-sm font-semibold block">
                           {profileUser.phone || "Не указан"}
                         </span>
@@ -410,10 +466,12 @@ export function UserProfile() {
 
                     {/* GitHub */}
                     {profileUser.github_url && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/10 sm:col-span-2">
+                      <div className="flex items-center gap-3 p-3 rounded-none border bg-muted/10 sm:col-span-2">
                         <Github className="w-5 h-5 text-primary shrink-0" />
                         <div className="overflow-hidden">
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground block">GitHub профиль</span>
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                            GitHub профиль
+                          </span>
                           <a
                             href={profileUser.github_url}
                             target="_blank"
@@ -435,8 +493,12 @@ export function UserProfile() {
               <TabsContent value="edit" className="m-0 outline-none">
                 <Card className="border border-border/60 bg-card p-6 sm:p-8 shadow-sm">
                   <div className="border-b border-border/50 pb-4 mb-6">
-                    <CardTitle className="text-xl font-bold">Редактировать профиль</CardTitle>
-                    <CardDescription>Измените свои персональные данные и контактную информацию</CardDescription>
+                    <CardTitle className="text-xl font-bold">
+                      Редактировать профиль
+                    </CardTitle>
+                    <CardDescription>
+                      Измените свои персональные данные и контактную информацию
+                    </CardDescription>
                   </div>
 
                   <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -449,13 +511,21 @@ export function UserProfile() {
                           id="name"
                           value={profileForm.name}
                           onChange={(e) => {
-                            setProfileForm((p) => ({ ...p, name: e.target.value }));
-                            setProfileErrors((p) => ({ ...p, name: undefined }));
+                            setProfileForm((p) => ({
+                              ...p,
+                              name: e.target.value,
+                            }));
+                            setProfileErrors((p) => ({
+                              ...p,
+                              name: undefined,
+                            }));
                           }}
                           disabled={updateProfileMutation.isPending}
                         />
                         {profileErrors.name && (
-                          <p className="text-xs font-semibold text-destructive">{profileErrors.name}</p>
+                          <p className="text-xs font-semibold text-destructive">
+                            {profileErrors.name}
+                          </p>
                         )}
                       </div>
 
@@ -466,13 +536,21 @@ export function UserProfile() {
                           id="surname"
                           value={profileForm.surname}
                           onChange={(e) => {
-                            setProfileForm((p) => ({ ...p, surname: e.target.value }));
-                            setProfileErrors((p) => ({ ...p, surname: undefined }));
+                            setProfileForm((p) => ({
+                              ...p,
+                              surname: e.target.value,
+                            }));
+                            setProfileErrors((p) => ({
+                              ...p,
+                              surname: undefined,
+                            }));
                           }}
                           disabled={updateProfileMutation.isPending}
                         />
                         {profileErrors.surname && (
-                          <p className="text-xs font-semibold text-destructive">{profileErrors.surname}</p>
+                          <p className="text-xs font-semibold text-destructive">
+                            {profileErrors.surname}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -484,19 +562,26 @@ export function UserProfile() {
                         id="phone"
                         value={profileForm.phone}
                         onChange={(e) => {
-                          setProfileForm((p) => ({ ...p, phone: e.target.value }));
+                          setProfileForm((p) => ({
+                            ...p,
+                            phone: e.target.value,
+                          }));
                           setProfileErrors((p) => ({ ...p, phone: undefined }));
                         }}
                         disabled={updateProfileMutation.isPending}
                       />
                       {profileErrors.phone && (
-                        <p className="text-xs font-semibold text-destructive">{profileErrors.phone}</p>
+                        <p className="text-xs font-semibold text-destructive">
+                          {profileErrors.phone}
+                        </p>
                       )}
                     </div>
 
                     {/* GitHub URL */}
                     <div className="space-y-1.5">
-                      <Label htmlFor="github_url">Ссылка на GitHub профиль</Label>
+                      <Label htmlFor="github_url">
+                        Ссылка на GitHub профиль
+                      </Label>
                       <div className="relative">
                         <Github className="absolute left-3 top-2.5 h-4.5 w-4.5 text-muted-foreground" />
                         <Input
@@ -505,14 +590,22 @@ export function UserProfile() {
                           className="pl-10"
                           value={profileForm.github_url}
                           onChange={(e) => {
-                            setProfileForm((p) => ({ ...p, github_url: e.target.value }));
-                            setProfileErrors((p) => ({ ...p, github_url: undefined }));
+                            setProfileForm((p) => ({
+                              ...p,
+                              github_url: e.target.value,
+                            }));
+                            setProfileErrors((p) => ({
+                              ...p,
+                              github_url: undefined,
+                            }));
                           }}
                           disabled={updateProfileMutation.isPending}
                         />
                       </div>
                       {profileErrors.github_url && (
-                        <p className="text-xs font-semibold text-destructive">{profileErrors.github_url}</p>
+                        <p className="text-xs font-semibold text-destructive">
+                          {profileErrors.github_url}
+                        </p>
                       )}
                     </div>
 
@@ -524,13 +617,18 @@ export function UserProfile() {
                         className="min-h-[100px] resize-y"
                         value={profileForm.about}
                         onChange={(e) => {
-                          setProfileForm((p) => ({ ...p, about: e.target.value }));
+                          setProfileForm((p) => ({
+                            ...p,
+                            about: e.target.value,
+                          }));
                           setProfileErrors((p) => ({ ...p, about: undefined }));
                         }}
                         disabled={updateProfileMutation.isPending}
                       />
                       {profileErrors.about && (
-                        <p className="text-xs font-semibold text-destructive">{profileErrors.about}</p>
+                        <p className="text-xs font-semibold text-destructive">
+                          {profileErrors.about}
+                        </p>
                       )}
                     </div>
 
@@ -568,8 +666,13 @@ export function UserProfile() {
               <TabsContent value="password" className="m-0 outline-none">
                 <Card className="border border-border/60 bg-card p-6 sm:p-8 shadow-sm">
                   <div className="border-b border-border/50 pb-4 mb-6">
-                    <CardTitle className="text-xl font-bold">Смена пароля</CardTitle>
-                    <CardDescription>Измените текущий пароль на новый. Пароль должен быть надежным</CardDescription>
+                    <CardTitle className="text-xl font-bold">
+                      Смена пароля
+                    </CardTitle>
+                    <CardDescription>
+                      Измените текущий пароль на новый. Пароль должен быть
+                      надежным
+                    </CardDescription>
                   </div>
 
                   <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -585,14 +688,22 @@ export function UserProfile() {
                           className="pl-10"
                           value={passwordForm.old_password}
                           onChange={(e) => {
-                            setPasswordForm((p) => ({ ...p, old_password: e.target.value }));
-                            setPasswordErrors((p) => ({ ...p, old_password: undefined }));
+                            setPasswordForm((p) => ({
+                              ...p,
+                              old_password: e.target.value,
+                            }));
+                            setPasswordErrors((p) => ({
+                              ...p,
+                              old_password: undefined,
+                            }));
                           }}
                           disabled={changePasswordMutation.isPending}
                         />
                       </div>
                       {passwordErrors.old_password && (
-                        <p className="text-xs font-semibold text-destructive">{passwordErrors.old_password}</p>
+                        <p className="text-xs font-semibold text-destructive">
+                          {passwordErrors.old_password}
+                        </p>
                       )}
                     </div>
 
@@ -608,20 +719,30 @@ export function UserProfile() {
                           className="pl-10"
                           value={passwordForm.new_password1}
                           onChange={(e) => {
-                            setPasswordForm((p) => ({ ...p, new_password1: e.target.value }));
-                            setPasswordErrors((p) => ({ ...p, new_password1: undefined }));
+                            setPasswordForm((p) => ({
+                              ...p,
+                              new_password1: e.target.value,
+                            }));
+                            setPasswordErrors((p) => ({
+                              ...p,
+                              new_password1: undefined,
+                            }));
                           }}
                           disabled={changePasswordMutation.isPending}
                         />
                       </div>
                       {passwordErrors.new_password1 && (
-                        <p className="text-xs font-semibold text-destructive">{passwordErrors.new_password1}</p>
+                        <p className="text-xs font-semibold text-destructive">
+                          {passwordErrors.new_password1}
+                        </p>
                       )}
                     </div>
 
                     {/* New Password 2 */}
                     <div className="space-y-1.5">
-                      <Label htmlFor="new_password2">Повторите новый пароль *</Label>
+                      <Label htmlFor="new_password2">
+                        Повторите новый пароль *
+                      </Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-2.5 h-4.5 w-4.5 text-muted-foreground" />
                         <Input
@@ -631,14 +752,22 @@ export function UserProfile() {
                           className="pl-10"
                           value={passwordForm.new_password2}
                           onChange={(e) => {
-                            setPasswordForm((p) => ({ ...p, new_password2: e.target.value }));
-                            setPasswordErrors((p) => ({ ...p, new_password2: undefined }));
+                            setPasswordForm((p) => ({
+                              ...p,
+                              new_password2: e.target.value,
+                            }));
+                            setPasswordErrors((p) => ({
+                              ...p,
+                              new_password2: undefined,
+                            }));
                           }}
                           disabled={changePasswordMutation.isPending}
                         />
                       </div>
                       {passwordErrors.new_password2 && (
-                        <p className="text-xs font-semibold text-destructive">{passwordErrors.new_password2}</p>
+                        <p className="text-xs font-semibold text-destructive">
+                          {passwordErrors.new_password2}
+                        </p>
                       )}
                     </div>
 

@@ -6,12 +6,26 @@ import { useAuth } from "../hooks/useAuth";
 import { ProjectCard } from "../components/ProjectCard";
 import { SkillBadge } from "../components/SkillBadge";
 import { Modal } from "../components/Modal";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import { z } from "zod";
 import {
   Search,
@@ -23,12 +37,16 @@ import {
   FolderPlus,
   AlertCircle,
   Tag,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Github } from "../components/icons/Github";
 
 // Zod validation for project creation
 const createProjectSchema = z.object({
-  name: z.string().min(1, "Название обязательно").max(200, "Не более 200 символов"),
+  name: z
+    .string()
+    .min(1, "Название обязательно")
+    .max(200, "Не более 200 символов"),
   description: z.string().optional(),
   github_url: z
     .string()
@@ -45,6 +63,7 @@ export function ProjectList() {
 
   const [activeSkills, setActiveSkills] = useState<string[]>([]);
   const [showAllSkills, setShowAllSkills] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [skillQuery, setSkillQuery] = useState("");
   const [skillSuggestions, setSkillSuggestions] = useState<Skill[]>([]);
   const [isSkillLoading, setIsSkillLoading] = useState(false);
@@ -61,12 +80,11 @@ export function ProjectList() {
   const [formErrors, setFormErrors] = useState<Partial<CreateProjectForm>>({});
   const [createError, setCreateError] = useState("");
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   // Close skill dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".skills-dropdown-container")) {
         setShowSkillDropdown(false);
       }
     }
@@ -87,7 +105,10 @@ export function ProjectList() {
         const skills = await api.autocompleteSkills(skillQuery);
         // Exclude currently active filters
         const filtered = skills.filter(
-          (skill) => !activeSkills.some((s) => s.toLowerCase() === skill.name.toLowerCase())
+          (skill) =>
+            !activeSkills.some(
+              (s) => s.toLowerCase() === skill.name.toLowerCase(),
+            ),
         );
         setSkillSuggestions(filtered);
         setShowSkillDropdown(true);
@@ -147,7 +168,9 @@ export function ProjectList() {
   };
 
   const handleRemoveSkillFilter = (skillName: string) => {
-    setActiveSkills((prev) => prev.filter((s) => s.toLowerCase() !== skillName.toLowerCase()));
+    setActiveSkills((prev) =>
+      prev.filter((s) => s.toLowerCase() !== skillName.toLowerCase()),
+    );
     setPage(1);
   };
 
@@ -181,7 +204,7 @@ export function ProjectList() {
   };
 
   const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -193,166 +216,225 @@ export function ProjectList() {
   // Pagination details
   const results = projectsData?.results || [];
   const totalCount = projectsData?.count || 0;
-  const pageSize = 6; // matching backend page size
+  const pageSize = 6;
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  const FiltersContent = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4 border-b border-border/50 pb-4">
+        <h2 className="font-bold text-lg flex items-center gap-2 text-foreground">
+          <Tag className="w-4 h-4 text-primary" />
+          Фильтрация
+        </h2>
+        {activeSkills.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            className="h-8 text-xs font-semibold text-muted-foreground hover:text-destructive gap-1 px-2"
+          >
+            <FilterX className="w-3.5 h-3.5" />
+            Сбросить
+          </Button>
+        )}
+      </div>
+
+      <div className="space-y-4 skills-dropdown-container relative">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="search-skills"
+            className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
+          >
+            Поиск по навыкам
+          </Label>
+          <div className="relative">
+            <Input
+              id="search-skills"
+              type="text"
+              value={skillQuery}
+              onChange={(e) => setSkillQuery(e.target.value)}
+              onFocus={() => skillQuery.trim() && setShowSkillDropdown(true)}
+              placeholder="Например, Python..."
+              className="w-full pr-8"
+            />
+            <Search className="absolute right-2.5 top-2.5 h-4.5 w-4.5 text-muted-foreground" />
+          </div>
+
+          {showSkillDropdown && skillSuggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 rounded-none border border-border bg-popover text-popover-foreground shadow-lg max-h-48 overflow-y-auto">
+              <ul className="py-1">
+                {skillSuggestions.map((skill) => (
+                  <li
+                    key={skill.id}
+                    onClick={() => {
+                      handleAddSkillFilter(skill.name);
+                      setIsMobileFiltersOpen(false);
+                    }}
+                    className="relative flex cursor-pointer select-none items-center rounded-none px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {skill.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {showSkillDropdown &&
+            skillSuggestions.length === 0 &&
+            skillQuery.trim() &&
+            !isSkillLoading && (
+              <div className="absolute z-10 w-full mt-1 rounded-none border border-border bg-popover text-popover-foreground shadow-lg p-3 text-xs text-muted-foreground">
+                Нажмите Enter, чтобы отфильтровать по "{skillQuery.trim()}"
+              </div>
+            )}
+
+          <input
+            type="submit"
+            className="hidden"
+            onClick={(e) => {
+              e.preventDefault();
+              if (skillQuery.trim()) {
+                handleAddSkillFilter(skillQuery);
+                setIsMobileFiltersOpen(false);
+              }
+            }}
+          />
+        </div>
+
+        {activeSkills.length > 0 && (
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Активные фильтры
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {activeSkills.map((skill) => (
+                <SkillBadge
+                  key={skill}
+                  name={skill}
+                  onRemove={() => handleRemoveSkillFilter(skill)}
+                  active
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3 pt-3 border-t border-border/40">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+            Навыки в проектах ({usedSkills.length})
+          </span>
+          {usedSkills.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">
+              Навыки в проектах еще не указаны
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1.5">
+                {(showAllSkills ? usedSkills : usedSkills.slice(0, 15)).map(
+                  (skill) => {
+                    const isActive = activeSkills.some(
+                      (s) => s.toLowerCase() === skill.name.toLowerCase(),
+                    );
+                    return (
+                      <SkillBadge
+                        key={skill.id}
+                        name={skill.name}
+                        onClick={() => {
+                          if (isActive) {
+                            handleRemoveSkillFilter(skill.name);
+                          } else {
+                            handleAddSkillFilter(skill.name);
+                            setIsMobileFiltersOpen(false);
+                          }
+                        }}
+                        active={isActive}
+                      />
+                    );
+                  },
+                )}
+              </div>
+              {usedSkills.length > 15 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAllSkills(!showAllSkills)}
+                  className="h-7 text-xs font-semibold px-2 hover:bg-accent/50 text-primary w-full justify-center"
+                >
+                  {showAllSkills
+                    ? "Свернуть"
+                    : `Еще (${usedSkills.length - 15})`}
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Title section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-2">
             Поиск Pet-проектов
           </h1>
-          <p className="text-muted-foreground">
-            Найдите интересную команду или опубликуйте свой проект для поиска единомышленников
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Найдите интересную команду или опубликуйте свой проект для поиска
+            единомышленников
           </p>
         </div>
 
-        {isAuthenticated && (
-          <Button
-            onClick={() => setIsCreateOpen(true)}
-            className="font-semibold gap-1.5 shrink-0"
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          {/* Mobile Filter Button */}
+          <Dialog
+            open={isMobileFiltersOpen}
+            onOpenChange={setIsMobileFiltersOpen}
           >
-            <Plus className="w-5 h-5" />
-            Создать проект
-          </Button>
-        )}
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="lg:hidden w-full sm:w-auto font-semibold gap-1.5 h-10 rounded-none"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                Фильтры
+                {activeSkills.length > 0 && (
+                  <span className="flex h-5 items-center justify-center rounded-none bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                    {activeSkills.length}
+                  </span>
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[90vw] sm:max-w-md rounded-none p-6">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-5 h-5 text-primary" />
+                  Фильтры проектов
+                </DialogTitle>
+              </DialogHeader>
+              <div className="py-4 overflow-y-auto max-h-[70vh]">
+                {FiltersContent()}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {isAuthenticated && (
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              className="font-semibold gap-1.5 shrink-0 flex-1 sm:flex-initial h-10 rounded-none"
+            >
+              <Plus className="w-5 h-5" />
+              Создать проект
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Filters Panel */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-xl border border-border/60 bg-card p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4 border-b border-border/50 pb-4 mb-4">
-              <h2 className="font-bold text-lg flex items-center gap-2 text-foreground">
-                <Tag className="w-4 h-4 text-primary" />
-                Фильтрация
-              </h2>
-              {activeSkills.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  className="h-8 text-xs font-semibold text-muted-foreground hover:text-destructive gap-1 px-2"
-                >
-                  <FilterX className="w-3.5 h-3.5" />
-                  Сбросить
-                </Button>
-              )}
-            </div>
-
-            {/* Autocomplete Input */}
-            <div className="space-y-4" ref={dropdownRef}>
-              <div className="space-y-1.5">
-                <Label htmlFor="search-skills" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Поиск по навыкам
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="search-skills"
-                    type="text"
-                    value={skillQuery}
-                    onChange={(e) => setSkillQuery(e.target.value)}
-                    onFocus={() => skillQuery.trim() && setShowSkillDropdown(true)}
-                    placeholder="Например, Python..."
-                    className="w-full pr-8"
-                  />
-                  <Search className="absolute right-2.5 top-2.5 h-4.5 w-4.5 text-muted-foreground" />
-                </div>
-                
-                {/* Suggestions dropdown */}
-                {showSkillDropdown && skillSuggestions.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 rounded-md border border-border bg-popover text-popover-foreground shadow-lg max-h-48 overflow-y-auto">
-                    <ul className="py-1">
-                      {skillSuggestions.map((skill) => (
-                        <li
-                          key={skill.id}
-                          onClick={() => handleAddSkillFilter(skill.name)}
-                          className="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                        >
-                          {skill.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {showSkillDropdown && skillSuggestions.length === 0 && skillQuery.trim() && !isSkillLoading && (
-                  <div className="absolute z-10 w-full mt-1 rounded-md border border-border bg-popover text-popover-foreground shadow-lg p-3 text-xs text-muted-foreground">
-                    Нажмите Enter, чтобы отфильтровать по "{skillQuery.trim()}"
-                  </div>
-                )}
-                
-                {/* Fallback to Enter submit for arbitrary skills */}
-                <input
-                  type="submit"
-                  className="hidden"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (skillQuery.trim()) {
-                      handleAddSkillFilter(skillQuery);
-                    }
-                  }}
-                />
-              </div>
-
-              {/* Active filters display */}
-              {activeSkills.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    Активные фильтры
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {activeSkills.map((skill) => (
-                      <SkillBadge
-                        key={skill}
-                        name={skill}
-                        onRemove={() => handleRemoveSkillFilter(skill)}
-                        active
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Used Skills List */}
-              <div className="space-y-3 pt-3 border-t border-border/40">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                  Навыки в проектах ({usedSkills.length})
-                </span>
-                {usedSkills.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">
-                    Навыки в проектах еще не указаны
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-1.5">
-                      {(showAllSkills ? usedSkills : usedSkills.slice(0, 15)).map((skill) => {
-                        const isActive = activeSkills.some((s) => s.toLowerCase() === skill.name.toLowerCase());
-                        return (
-                          <SkillBadge
-                            key={skill.id}
-                            name={skill.name}
-                            onClick={() => (isActive ? handleRemoveSkillFilter(skill.name) : handleAddSkillFilter(skill.name))}
-                            active={isActive}
-                          />
-                        );
-                      })}
-                    </div>
-                    {usedSkills.length > 15 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowAllSkills(!showAllSkills)}
-                        className="h-7 text-xs font-semibold px-2 hover:bg-accent/50 text-primary w-full justify-center"
-                      >
-                        {showAllSkills ? "Свернуть" : `Еще (${usedSkills.length - 15})`}
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* Desktop Filters Panel */}
+        <div className="hidden lg:block lg:col-span-1 space-y-6">
+          <div className="rounded-none border border-border bg-card p-6 shadow-xs sticky top-24">
+            {FiltersContent()}
           </div>
         </div>
 
@@ -360,13 +442,16 @@ export function ProjectList() {
         <div className="lg:col-span-3 flex flex-col gap-6">
           {isLoading ? (
             /* Skeletal loaders */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-64 rounded-xl border border-border/40 bg-muted/10 animate-pulse flex flex-col p-6 gap-4">
-                  <div className="h-6 w-1/3 bg-muted rounded" />
-                  <div className="h-4 w-full bg-muted rounded" />
-                  <div className="h-4 w-5/6 bg-muted rounded" />
-                  <div className="h-10 w-full bg-muted rounded mt-auto" />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-64 rounded-none border border-border/40 bg-muted/10 animate-pulse flex flex-col p-6 gap-4"
+                >
+                  <div className="h-6 w-1/3 bg-muted rounded-none" />
+                  <div className="h-4 w-full bg-muted rounded-none" />
+                  <div className="h-4 w-5/6 bg-muted rounded-none" />
+                  <div className="h-10 w-full bg-muted rounded-none mt-auto" />
                 </div>
               ))}
             </div>
@@ -374,11 +459,13 @@ export function ProjectList() {
             <Alert variant="destructive">
               <AlertCircle className="w-5 h-5" />
               <AlertTitle>Ошибка загрузки проектов</AlertTitle>
-              <AlertDescription>{error?.message || "Пожалуйста, попробуйте обновить страницу."}</AlertDescription>
+              <AlertDescription>
+                {error?.message || "Пожалуйста, попробуйте обновить страницу."}
+              </AlertDescription>
             </Alert>
           ) : results.length === 0 ? (
-            <div className="flex flex-col items-center justify-center border border-dashed bg-card rounded-2xl p-16 text-center gap-4">
-              <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center text-primary">
+            <div className="flex flex-col items-center justify-center border border-dashed border-border bg-card rounded-none p-16 text-center gap-4">
+              <div className="h-16 w-16 rounded-none bg-muted flex items-center justify-center text-primary">
                 <FolderPlus className="w-8 h-8" />
               </div>
               <div>
@@ -390,7 +477,12 @@ export function ProjectList() {
                 </p>
               </div>
               {activeSkills.length > 0 && (
-                <Button onClick={handleClearFilters} variant="outline" size="sm" className="mt-2">
+                <Button
+                  onClick={handleClearFilters}
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 rounded-none"
+                >
                   Сбросить фильтры
                 </Button>
               )}
@@ -398,7 +490,7 @@ export function ProjectList() {
           ) : (
             <>
               {/* Projects Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {results.map((project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
@@ -406,10 +498,16 @@ export function ProjectList() {
 
               {/* Pagination controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between border-t border-border/50 pt-6 mt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between border-t border-border/50 pt-6 mt-4 gap-4 sm:gap-0">
                   <span className="text-sm text-muted-foreground">
-                    Показано проектов: <span className="font-semibold text-foreground">{results.length}</span> из{" "}
-                    <span className="font-semibold text-foreground">{totalCount}</span>
+                    Показано проектов:{" "}
+                    <span className="font-semibold text-foreground">
+                      {results.length}
+                    </span>{" "}
+                    из{" "}
+                    <span className="font-semibold text-foreground">
+                      {totalCount}
+                    </span>
                   </span>
 
                   <div className="flex items-center gap-2">
@@ -429,7 +527,9 @@ export function ProjectList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page === totalPages}
                       className="gap-1"
                     >
@@ -445,7 +545,11 @@ export function ProjectList() {
       </div>
 
       {/* Project Creation Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Создание проекта">
+      <Modal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title="Создание проекта"
+      >
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           {createError && (
             <Alert variant="destructive">
@@ -468,7 +572,9 @@ export function ProjectList() {
               disabled={createMutation.isPending}
             />
             {formErrors.name && (
-              <p className="text-xs font-semibold text-destructive">{formErrors.name}</p>
+              <p className="text-xs font-semibold text-destructive">
+                {formErrors.name}
+              </p>
             )}
           </div>
 
@@ -485,7 +591,9 @@ export function ProjectList() {
               disabled={createMutation.isPending}
             />
             {formErrors.description && (
-              <p className="text-xs font-semibold text-destructive">{formErrors.description}</p>
+              <p className="text-xs font-semibold text-destructive">
+                {formErrors.description}
+              </p>
             )}
           </div>
 
@@ -506,7 +614,9 @@ export function ProjectList() {
               />
             </div>
             {formErrors.github_url && (
-              <p className="text-xs font-semibold text-destructive">{formErrors.github_url}</p>
+              <p className="text-xs font-semibold text-destructive">
+                {formErrors.github_url}
+              </p>
             )}
           </div>
 

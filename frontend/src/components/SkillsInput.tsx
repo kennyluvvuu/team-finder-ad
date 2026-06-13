@@ -136,13 +136,13 @@ export function SkillsInput({ projectId, onSkillAdded, existingSkillNames }: Ski
 
       {/* Autocomplete Suggestions Dropdown */}
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 z-50 w-full mt-1 rounded-md border border-border bg-popover text-popover-foreground shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 z-50 w-full mt-1 rounded-none border border-border bg-popover text-popover-foreground shadow-lg max-h-60 overflow-y-auto">
           <ul className="py-1">
             {suggestions.map((skill) => (
               <li
                 key={skill.id}
                 onClick={() => handleAddSkill(skill.id, skill.name)}
-                className="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="relative flex cursor-pointer select-none items-center rounded-none px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 {skill.name}
               </li>

@@ -4,7 +4,12 @@ import { api } from "../lib/api";
 import { Link } from "react-router";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "../components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import {
@@ -64,7 +69,8 @@ export function UserList() {
             Участники платформы
           </h1>
           <p className="text-muted-foreground">
-            Найдите специалистов и единомышленников для совместной разработки Pet-проектов
+            Найдите специалистов и единомышленников для совместной разработки
+            Pet-проектов
           </p>
         </div>
       </div>
@@ -85,22 +91,22 @@ export function UserList() {
 
       {isLoading ? (
         /* Skeletal Loaders */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="h-56 rounded-xl border border-border/40 bg-muted/10 animate-pulse flex flex-col p-6 gap-3"
+              className="h-56 rounded-none border border-border/40 bg-muted/10 animate-pulse flex flex-col p-6 gap-3"
             >
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-muted" />
+                <div className="h-12 w-12 rounded-none bg-muted" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-2/3 bg-muted rounded" />
-                  <div className="h-3 w-1/2 bg-muted rounded" />
+                  <div className="h-4 w-2/3 bg-muted rounded-none" />
+                  <div className="h-3 w-1/2 bg-muted rounded-none" />
                 </div>
               </div>
-              <div className="h-3 w-full bg-muted rounded mt-2" />
-              <div className="h-3 w-5/6 bg-muted rounded" />
-              <div className="h-8 w-full bg-muted rounded mt-auto" />
+              <div className="h-3 w-full bg-muted rounded-none mt-2" />
+              <div className="h-3 w-5/6 bg-muted rounded-none" />
+              <div className="h-8 w-full bg-muted rounded-none mt-auto" />
             </div>
           ))}
         </div>
@@ -108,11 +114,13 @@ export function UserList() {
         <Alert variant="destructive">
           <AlertCircle className="w-5 h-5" />
           <AlertTitle>Ошибка при загрузке участников</AlertTitle>
-          <AlertDescription>{error?.message || "Пожалуйста, обновите страницу."}</AlertDescription>
+          <AlertDescription>
+            {error?.message || "Пожалуйста, обновите страницу."}
+          </AlertDescription>
         </Alert>
       ) : filteredUsers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center border border-dashed border-border/60 bg-card rounded-2xl p-16 text-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center text-primary">
+        <div className="flex flex-col items-center justify-center border border-dashed border-border/60 bg-card rounded-none p-16 text-center gap-4">
+          <div className="h-16 w-16 rounded-none bg-muted flex items-center justify-center text-primary">
             <Users className="w-8 h-8" />
           </div>
           <div>
@@ -125,16 +133,19 @@ export function UserList() {
       ) : (
         <>
           {/* Members grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredUsers.map((member) => (
               <Card
                 key={member.id}
-                className="flex flex-col h-full overflow-hidden border bg-card hover:border-muted-foreground/30 hover:shadow-md transition-all duration-300 group"
+                className="flex flex-col h-full overflow-hidden border border-border bg-card hover:border-primary/50 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_var(--primary)] transition-all duration-200 group rounded-none"
               >
                 {/* Header with Avatar and Basic info */}
                 <CardHeader className="p-5 pb-3 flex flex-row items-center gap-3">
                   <Avatar className="h-12 w-12 border">
-                    <AvatarImage src={member.avatar} alt={`${member.name} ${member.surname}`} />
+                    <AvatarImage
+                      src={member.avatar}
+                      alt={`${member.name} ${member.surname}`}
+                    />
                     <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
                       {getUserInitials(member.name, member.surname)}
                     </AvatarFallback>
@@ -144,7 +155,9 @@ export function UserList() {
                     <h3 className="font-bold text-base text-foreground truncate group-hover:text-primary transition-colors">
                       {member.name} {member.surname}
                     </h3>
-                    <span className="text-xs text-muted-foreground truncate block">{member.email}</span>
+                    <span className="text-xs text-muted-foreground truncate block">
+                      {member.email}
+                    </span>
                   </div>
                 </CardHeader>
 
@@ -194,10 +207,16 @@ export function UserList() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-border/50 pt-6 mt-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between border-t border-border/50 pt-6 mt-8 gap-4 sm:gap-0">
               <span className="text-sm text-muted-foreground">
-                Показано участников: <span className="font-semibold text-foreground">{filteredUsers.length}</span> из{" "}
-                <span className="font-semibold text-foreground">{totalCount}</span>
+                Показано участников:{" "}
+                <span className="font-semibold text-foreground">
+                  {filteredUsers.length}
+                </span>{" "}
+                из{" "}
+                <span className="font-semibold text-foreground">
+                  {totalCount}
+                </span>
               </span>
 
               <div className="flex items-center gap-2">
