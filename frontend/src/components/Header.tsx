@@ -38,7 +38,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-xs">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
       {/* Terminal window chrome bar */}
       <div className="w-full bg-muted/40 border-b border-border/40 px-4 py-1.5 flex items-center justify-between text-[10px] font-mono text-muted-foreground select-none">
         <div className="flex items-center gap-1.5">
@@ -48,10 +48,6 @@ export function Header() {
         </div>
         <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:block">
           guest@team-finder-cli: ~/workspace
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-          <span>STATUS: ONLINE</span>
         </div>
       </div>
 

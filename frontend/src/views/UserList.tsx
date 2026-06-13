@@ -64,7 +64,7 @@ export function UserList() {
       {/* Title */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2 flex items-center gap-3">
+          <h1 className="md:text-4xl text-2xl font-extrabold text-foreground tracking-tight mb-2 flex items-center gap-3">
             <Users className="w-9 h-9 text-primary" />
             Участники платформы
           </h1>

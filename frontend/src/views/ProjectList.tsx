@@ -38,6 +38,7 @@ import {
   AlertCircle,
   Tag,
   SlidersHorizontal,
+  FolderKanban,
 } from "lucide-react";
 import { Github } from "../components/icons/Github";
 
@@ -376,7 +377,8 @@ export function ProjectList() {
       {/* Title section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-2 flex items-center gap-3">
+            <FolderKanban className="w-9 h-9 text-primary shrink-0" />
             Поиск Pet-проектов
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
