@@ -1,4 +1,5 @@
 import socket
+import typing
 from pathlib import Path
 from decouple import config
 
@@ -6,11 +7,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # TODO: Создать и заполнить .env, ориентируясь на .env_example
 
-SECRET_KEY = config("DJANGO_SECRET_KEY")
+SECRET_KEY: str = typing.cast(str, config("DJANGO_SECRET_KEY"))
 
-DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
+DEBUG: bool = typing.cast(bool, config("DJANGO_DEBUG", default=False, cast=bool))
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")])
+ALLOWED_HOSTS: list[str] = typing.cast(list[str], config("ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")]))
 
 # Ensure localhost and common docker services are always allowed
 for host in ["localhost", "127.0.0.1", "backend", "web"]:
@@ -18,7 +19,7 @@ for host in ["localhost", "127.0.0.1", "backend", "web"]:
         ALLOWED_HOSTS.append(host)
 
 # Add SITE_DOMAIN if set
-site_domain = config("SITE_DOMAIN", default="")
+site_domain: str = typing.cast(str, config("SITE_DOMAIN", default=""))
 if site_domain:
     clean_domain = site_domain.split("://")[-1].split(":")[0]
     if clean_domain not in ALLOWED_HOSTS:
@@ -36,11 +37,11 @@ try:
 except Exception:
     pass
 
-CSRF_TRUSTED_ORIGINS = config(
+CSRF_TRUSTED_ORIGINS: list[str] = typing.cast(list[str], config(
     "CSRF_TRUSTED_ORIGINS",
     default="http://localhost:3000,http://127.0.0.1:3000,http://localhost,http://127.0.0.1",
     cast=lambda v: [s.strip() for s in v.split(",")]
-)
+))
 
 # Dynamically add SITE_DOMAIN (http and https) to CSRF_TRUSTED_ORIGINS
 if site_domain:

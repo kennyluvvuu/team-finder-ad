@@ -17,3 +17,22 @@ dependencies = [
     "types-pillow>=10.2.0.20240822",
     "tzdata==2025.2",
 ]
+
+[tool.basedpyright]
+typeCheckingMode = "basic"
+# Disable overly strict rules that complain about Django's dynamic nature
+reportUnannotatedClassAttribute = false
+reportImplicitOverride = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownParameterType = false
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportMissingParameterType = false
+reportExplicitAny = false
+reportAny = false
+reportMissingTypeStubs = false
+reportUnusedImport = true
+reportUnusedVariable = true
+reportDuplicateImport = true
+

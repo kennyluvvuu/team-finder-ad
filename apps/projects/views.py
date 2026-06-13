@@ -1,7 +1,5 @@
-import json
-from typing import Any
+from typing import Any, cast
 
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
     OpenApiParameter,
@@ -9,10 +7,10 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import generics, permissions, serializers, status, viewsets
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.request import Request
 
 from apps.projects.models import Project, Skill
 from apps.projects.serializers import (
@@ -301,7 +299,8 @@ class SkillAutocompleteAPIView(generics.ListAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def get_queryset(self):
-        q = self.request.query_params.get("q", "").strip()
+        request = cast(Request, self.request)
+        q = request.query_params.get("q", "").strip()
         if not q:
             return Skill.objects.none()
         return Skill.objects.filter(name__istartswith=q)[:10]
