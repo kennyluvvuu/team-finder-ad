@@ -16,5 +16,13 @@ const app = (
   </StrictMode>
 );
 
-// https://bun.com/docs/bundler/hot-reloading#import-meta-hot-data
-(import.meta.hot.data.root ??= createRoot(elem)).render(app);
+// Safe HMR rendering for both Vite and Bun
+let root;
+if (typeof import.meta !== "undefined" && import.meta.hot && import.meta.hot.data) {
+  import.meta.hot.data.root ??= createRoot(elem);
+  root = import.meta.hot.data.root;
+} else {
+  root = createRoot(elem);
+}
+
+root.render(app);

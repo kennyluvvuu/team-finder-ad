@@ -50,6 +50,11 @@ const server = serve({
       return new Response(file);
     }
 
+    // Do not fallback to index.html for missing assets
+    if (pathname.startsWith("/assets/")) {
+      return new Response("Asset Not Found", { status: 404 });
+    }
+
     // 4. Fallback to dist/index.html (for client-side routing / SPA)
     const indexFile = Bun.file("dist/index.html");
     if (await indexFile.exists()) {
