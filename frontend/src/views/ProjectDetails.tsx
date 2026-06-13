@@ -100,6 +100,7 @@ export function ProjectDetails() {
     mutationFn: (data: EditProjectForm) => api.updateProject(projectId, data),
     onSuccess: (updated) => {
       queryClient.setQueryData(["project", projectId], updated);
+      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       setIsEditOpen(false);
       setFormErrors({});
@@ -168,20 +169,19 @@ export function ProjectDetails() {
     );
   }
 
-  const isOwner = user ? project.owner.id === user.id : false;
+  const isOwner = user ? project?.owner?.id === user.id : false;
   const isParticipant = user
-    ? project.participants.some((p) => p.id === user.id)
+    ? project?.participants?.some((p) => p.id === user.id) ?? false
     : false;
-  const isClosed = project.status === "closed";
+  const isClosed = project?.status === "closed";
 
-  const formattedDate = new Date(project.created_at).toLocaleDateString(
-    "ru-RU",
-    {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    },
-  );
+  const formattedDate = project?.created_at
+    ? new Date(project.created_at).toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -341,7 +341,7 @@ export function ProjectDetails() {
                 <div className="pt-2">
                   <SkillsInput
                     projectId={projectId}
-                    existingSkillNames={project.skills.map((s) => s.name)}
+                    existingSkillNames={project?.skills?.map((s) => s.name) ?? []}
                     onSkillAdded={handleSkillAdded}
                   />
                 </div>
@@ -361,20 +361,20 @@ export function ProjectDetails() {
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 border-2 border-primary/20">
                 <AvatarImage
-                  src={project.owner.avatar}
-                  alt={project.owner.name}
+                  src={project?.owner?.avatar}
+                  alt={project?.owner?.name}
                 />
                 <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
-                  {`${project.owner.name[0] || ""}${project.owner.surname[0] || ""}`.toUpperCase()}
+                  {`${project?.owner?.name?.[0] || ""}${project?.owner?.surname?.[0] || ""}`.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
 
               <div className="overflow-hidden">
                 <Link
-                  to={`/users/${project.owner.id}`}
+                  to={`/users/${project?.owner?.id || ""}`}
                   className="font-bold text-foreground hover:text-primary block truncate transition-colors"
                 >
-                  {project.owner.name} {project.owner.surname}
+                  {project?.owner?.name || ""} {project?.owner?.surname || ""}
                 </Link>
                 <span className="text-xs text-muted-foreground">Создатель</span>
               </div>
@@ -388,17 +388,17 @@ export function ProjectDetails() {
                 Участники команды
               </h3>
               <span className="text-xs font-bold text-muted-foreground px-1.5 py-0.5 bg-muted border rounded-none">
-                {project.participants.length}
+                {project?.participants?.length ?? 0}
               </span>
             </div>
 
-            {project.participants.length === 0 ? (
+            {(project?.participants?.length ?? 0) === 0 ? (
               <p className="text-sm text-muted-foreground italic">
                 Пока нет участников команды
               </p>
             ) : (
               <div className="space-y-3">
-                {project.participants.map((participant) => (
+                {project?.participants?.map((participant) => (
                   <div
                     key={participant.id}
                     className="flex items-center justify-between gap-2"
@@ -423,7 +423,7 @@ export function ProjectDetails() {
                     </div>
 
                     {/* Owner indicator */}
-                    {participant.id === project.owner.id && (
+                    {participant.id === project?.owner?.id && (
                       <Badge
                         variant="outline"
                         className="text-[9px] py-0 px-1.5"
