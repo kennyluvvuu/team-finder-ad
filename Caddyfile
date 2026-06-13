@@ -1,0 +1,18 @@
+{$SITE_DOMAIN:localhost} {
+    # Reverse proxy API requests to Django backend container
+    reverse_proxy /api/* backend:8000
+
+    # Reverse proxy media requests to Django backend container
+    reverse_proxy /media/* backend:8000
+
+    # Reverse proxy all other requests (HTML, JS, assets) to Bun frontend container
+    reverse_proxy * frontend:3000
+
+    # Enable compression
+    encode gzip zstd
+
+    # Logging
+    log {
+        output stdout
+    }
+}
